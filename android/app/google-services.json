@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "756030801933",
+    "project_id": "appmensajeria123",
+    "storage_bucket": "appmensajeria123.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756030801933:android:792fc8365111e77e242d44",
+        "android_client_info": {
+          "package_name": "com.myappmensajeria"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "756030801933-n1n6c8brnm4sptfi6jps5b69n30kia11.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.myappmensajeria",
+            "certificate_hash": "e96688424843fc9cb611949e7dca594d5a580b25"
+          }
+        },
+        {
+          "client_id": "756030801933-0l9trpobrvrcsd68ct8bm1rijvcksr93.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxmdlqRJz15bDPZI0UmFE6SOYjEmqQ31g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "756030801933-0l9trpobrvrcsd68ct8bm1rijvcksr93.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
