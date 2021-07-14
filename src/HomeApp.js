@@ -60,31 +60,37 @@ const HomeComponent=React.forwardRef((props,ref) => {
          // console.log("error",error);          
         }
       },
-      useRefrescarMensajes:async (value) =>{
+      useRefrescarMensajes:async (value,nombre) =>{
+        console.log("nombre-useRefrescarMensajes",nombre);
         if(contactoSeleccionado!=null){
        
           if(contactoSeleccionado.numero==value.origen){
             setListadoMensajes(listadoMensajes => [...listadoMensajes, value]);
             let itemValue=await buscarContactoNumero(contactoSeleccionado.numero);
+            if(nombre==null){
+              nombre=value.origen;
+            }
             modelVistaMensajesUsuario.registrarActualizar({
               numero:contactoSeleccionado.numero,
-              usuario:value.origen,
+              usuario:nombre,
               mensaje:value.mensaje,
             });
             listarMensajesUsuarioVista();
           }
         }else{
-          
+          if(nombre==null){
+            nombre=value.origen;
+          }
           let itemValue=await buscarContactoNumero(value.origen);
           await modelVistaMensajesUsuario.registrarActualizar({
             numero:value.origen,
-            usuario:itemValue!=null ? itemValue.nombre : value.origen ,
+            usuario:nombre/*itemValue!=null ? itemValue.nombre : value.origen*/ ,
             mensaje:value.mensaje,
           });
           
           await refrescarMensajeVista({
             numero:value.origen,
-            usuario:itemValue!=null ? itemValue.nombre : value.origen,
+            usuario:nombre,
             mensaje:value.mensaje,
           });
 
@@ -110,11 +116,14 @@ const HomeComponent=React.forwardRef((props,ref) => {
   },[contactosMensajeVista]);
   const refrescarMensajeVista =React.useCallback( (e) => {
     let existe=false;
+    console.log("refrescarMensajeVista-");
     const newcontactosMensajeVista = {...contactosMensajeVista};
     Object.entries(newcontactosMensajeVista).forEach(([key, value]) => {
+      console.log("value",value);
       if(value.numero==e.numero){
         existe=true;
         value.horaUltimoMensaje=e.horaUltimoMensaje;
+        value.fechaEnvio=e.fechaEnvio;
         value.nombre=e.usuario;
         value.mensaje=e.mensaje;
         value.ultimoMensaje=e.ultimoMensaje;

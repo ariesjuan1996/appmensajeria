@@ -100,10 +100,11 @@ const AppComponent=memo((props,ref) => {
 
   },[dataUsuarioTelefono.numero] );
   useEffect(() => {
-    if(dataUsuarioTelefono.numero!=null){
+    if(dataUsuarioTelefono.numero!=null && contactoCargado){
+     
       inicializarSoket(dataUsuarioTelefono.numero);
     }
-  },[dataUsuarioTelefono.numero]);
+  },[dataUsuarioTelefono.numero,contactoCargado]);
   useEffect( () => {
     if(stateConectInternet.isConnected && socket.connected && dataUsuarioTelefono.numero!=null && dataUsuarioTelefono.numero!="" && dataUsuarioTelefono.numero!=undefined && contactoCargado==true && myRef!=null){
       (async()=>{
@@ -111,6 +112,7 @@ const AppComponent=memo((props,ref) => {
         try {
           let listDataEnviar=await obtenerMensajesPendientes(dataUsuarioTelefono.numero);
           await modelMensajesUsuario.registrarMensajeMasivo(listDataEnviar,dataUsuarioTelefono.numero,listadoContactosTotal);
+          //console.log("listadoContactosTotal",listadoContactosTotal);
           let responseEmit=await socket.emit('actualizar-mensaje-estadomensaje-masivo', listDataEnviar);
           myRef.current.listarMensajesUsuarioVista();
         } catch (error) {
@@ -186,15 +188,19 @@ const AppComponent=memo((props,ref) => {
   });
   const inicializarSoket=useCallback((num)=>{
     socket.on("nuevo-mensaje-"+num,async(val)=>{
+      //console.log("val.origen",val.origen);
+      console.log("listadoContactosTotal-listadoContactosTotal",listadoContactosTotal[val.origen]);
+      let nombreTemporalEnvio=listadoContactosTotal[val.origen]==null || listadoContactosTotal[val.origen]=="" || listadoContactosTotal[val.origen]==undefined ? null : listadoContactosTotal[val.origen].nombre;
       modelMensajesUsuario.registrarMensajeEnvio({
         contactoNumero:val.destino,
         destino:val.destino,
         mensaje:val.mensaje,
         fechaEnvio:val.fechaEnvio,
-        origen:val.origen
+        origen:val.origen,
+        nombre:nombreTemporalEnvio
       });
     if(myRef!=null){
-      myRef.current.useRefrescarMensajes(val);
+      myRef.current.useRefrescarMensajes(val,nombreTemporalEnvio);
       let response=await socket.emit('actualizar-mensaje-estadomensaje', val);
     }
     },[]);
@@ -228,7 +234,7 @@ const AppComponent=memo((props,ref) => {
     
     },[]);
    
-  });
+  },[contactoCargado]);
   const actualizarLoaderMetodo =useCallback(  (request) => {
     dispatch(actualizarLoader(request));
   },[loaderData]);

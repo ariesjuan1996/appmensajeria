@@ -18,6 +18,7 @@ import {View} from 'react-native';
       }}>
         <Text style={styles.name}>{mensaje.origen==numero ? ("yo") : nombreContacto }</Text>
           <Text style={styles.message}>{mensaje.mensaje}</Text>
+          
           <Text style={styles.time}>{momentGlobal(mensaje.fechaEnvio).format('HH:mm:ss a')}</Text>
 
         </View>  

@@ -2,6 +2,8 @@
 import * as React from 'react';
 import {Platform} from 'react-native';
 import {  ListItem, Left, Body, Right, Thumbnail, Text } from 'native-base';
+
+import {MomentContext,momentGlobal} from '../../../src/context/momentConfig';
 import { useSelector } from "react-redux";
 const ItemContacto= (props)=> {
       const {data}=props;
@@ -29,7 +31,7 @@ const ItemContacto= (props)=> {
               <Text note>{data.ultimoMensaje}</Text>
             </Body>
             <Right>
-            <Text note>{data.horaUltimoMensaje}</Text>
+            <Text note>{momentGlobal(data.fechaEnvio).format('HH:mm:ss a')}</Text>
             </Right>
           </ListItem>
       

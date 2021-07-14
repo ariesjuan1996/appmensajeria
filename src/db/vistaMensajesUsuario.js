@@ -9,8 +9,10 @@ const init=async()=>{
 const registrarActualizar =async(data) => {
    try {
     await init();
+    console.log("data.usuario",data.usuario);
+    let existeNombreUsuario=data.usuario==null || data.usuario=="" || data.usuario==undefined ? false : true;
     let numero=("'"+data.numero+"'");
-    let usuario=("'"+data.usuario+"'");
+    let usuario=existeNombreUsuario ? ("'"+data.usuario+"'") : numero;
     let mensaje=("'"+data.mensaje+"'");
     let stringSinComillas=null;
     let tempFechaEnvio=data.fechaRegistroApi==undefined || data.fechaRegistroApi=="" || data.fechaRegistroApi==null ? null : ("'"+momentGlobal(data.fechaRegistroApi).format("YYYY-MM-DD HH:mm:ss")+"'") ;
@@ -31,7 +33,7 @@ const registrarActualizar =async(data) => {
         return "ok";
     }else{
         let responseValidFecha = await Database.executeSql("select max(fechaEnvio)  as cantidadFecha from vistaMensajesUsuario where  numero="+numero+";",[]);
-        console.log("responseValidFecha",responseValidFecha.rows.raw()[0].cantidadFecha);
+        //console.log("responseValidFecha",responseValidFecha.rows.raw()[0].cantidadFecha);
         let fechaMax=responseValidFecha.rows.raw()[0].cantidadFecha;
 
         if(fechaMax==null || fechaMax=="" || ( !(fechaMax==null || fechaMax=="") && stringSinComillas>fechaMax )){
@@ -55,6 +57,7 @@ const listar =async(data) => {
         tempData=listado.rows.raw();
         tempData.forEach(element => {
           element.horaUltimoMensaje=momentGlobal(element.fechaEnvio).format("HH:mm");
+        console.log("element.horaUltimoMensaje",element.horaUltimoMensaje);
         });
         return tempData;        
     } catch (error) {

@@ -115,7 +115,7 @@ const registrarMensajeMasivo =async(request,numero,listadoTotal) => {
                 let tempMensaje=("'"+element.mensaje+"'");
                 let tempFechaRegistro=("'"+element.fechaRegistro+"'");
                 let tempFechaEnvio=("'"+element.fechaEnvio+"'");
-                let usuario=listadoTotal[element.origen]==null || listadoTotal[element.origen]=="" || listadoTotal[element.origen]=="" ? element.origen :listadoTotal[element.origen].nombre;
+                let usuario=listadoTotal[element.origen]==null || listadoTotal[element.origen]=="" || listadoTotal[element.origen]=="" ? null :listadoTotal[element.origen].nombre;
                 await vistaMensaje.registrarActualizar({
                     numero:element.origen,
                     mensaje:element.mensaje,
