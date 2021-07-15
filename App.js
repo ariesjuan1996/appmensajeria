@@ -111,10 +111,13 @@ const AppComponent=memo((props,ref) => {
         
         try {
           let listDataEnviar=await obtenerMensajesPendientes(dataUsuarioTelefono.numero);
-          await modelMensajesUsuario.registrarMensajeMasivo(listDataEnviar,dataUsuarioTelefono.numero,listadoContactosTotal);
-          //console.log("listadoContactosTotal",listadoContactosTotal);
-          let responseEmit=await socket.emit('actualizar-mensaje-estadomensaje-masivo', listDataEnviar);
-          myRef.current.listarMensajesUsuarioVista();
+          if(listDataEnviar.length){
+            await modelMensajesUsuario.registrarMensajeMasivo(listDataEnviar,dataUsuarioTelefono.numero,listadoContactosTotal);
+            //console.log("listadoContactosTotal",listadoContactosTotal);
+            let responseEmit=await socket.emit('actualizar-mensaje-estadomensaje-masivo', listDataEnviar);
+            myRef.current.listarMensajesUsuarioVista();
+          }
+
         } catch (error) {
           console.log("error",error);
         }
@@ -132,18 +135,16 @@ const AppComponent=memo((props,ref) => {
       actualizarToken(token,dataUsuarioTelefono.numero);
     })
     .catch((error) => {
-      //console.log('permission rejected ' + error);
     });
   }
   const obtenerMensajesPendientes=async(numerousuario)=>{
     try {
-     console.log( "usuarios/listarMensajesPendientes?origen="+numerousuario);
       let response=await requestApi(
       "usuarios/listarMensajesPendientes?origen="+numerousuario,
       {
       },
       "get"
-      ); console.log("response-conect",response);
+      ); 
       return response.estado ? response.data : [];
     } catch (error) {
       console.log("error-conect",error);
@@ -189,7 +190,7 @@ const AppComponent=memo((props,ref) => {
   const inicializarSoket=useCallback((num)=>{
     socket.on("nuevo-mensaje-"+num,async(val)=>{
       //console.log("val.origen",val.origen);
-      console.log("listadoContactosTotal-listadoContactosTotal",listadoContactosTotal[val.origen]);
+     
       let nombreTemporalEnvio=listadoContactosTotal[val.origen]==null || listadoContactosTotal[val.origen]=="" || listadoContactosTotal[val.origen]==undefined ? null : listadoContactosTotal[val.origen].nombre;
       modelMensajesUsuario.registrarMensajeEnvio({
         contactoNumero:val.destino,
@@ -199,6 +200,8 @@ const AppComponent=memo((props,ref) => {
         origen:val.origen,
         nombre:nombreTemporalEnvio
       });
+      console.log("--",listadoContactosTotal[val.origen]);
+      console.log("myRef!=null",myRef!=null);
     if(myRef!=null){
       myRef.current.useRefrescarMensajes(val,nombreTemporalEnvio);
       let response=await socket.emit('actualizar-mensaje-estadomensaje', val);
@@ -224,7 +227,6 @@ const AppComponent=memo((props,ref) => {
       }
     
     },[]);
-    console.log("valvalvalvalval-",("respuesta-mensaje-enviado-sincronizado-"+num));
     socket.on("respuesta-mensaje-enviado-sincronizado-"+num,async(val)=>{
       let responseIds=await modelMensajesUsuario.actualizarListadoUsuarioVista( val);
      
@@ -242,7 +244,6 @@ const AppComponent=memo((props,ref) => {
   const cargarContactos = useCallback((data) => {
     Contacts.getAll().then((contactss) => {
       let tempContactos={};
-      console.log("contactss",tempContactos);
       contactss.map((element,index)=>{
         let numeroContacto=null;
         let id=null;

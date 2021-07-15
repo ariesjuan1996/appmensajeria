@@ -32,6 +32,11 @@ const ItemContacto= (props)=> {
             </Body>
             <Right>
             <Text note>{momentGlobal(data.fechaEnvio).format('HH:mm:ss a')}</Text>
+            {
+              data.numeromensajesnoleidos!=null  && data.numeromensajesnoleidos>0 ? 
+              <Text circle style={{backgroundColor:"#58B963",color:"#fff",width:28,marginTop:10,fontSize:18,height:28,borderRadius:28,textAlign:"center"}}>{data.numeromensajesnoleidos}</Text>
+              : null
+            }
             </Right>
           </ListItem>
       

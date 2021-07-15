@@ -50,7 +50,8 @@ const App =React.memo( (props) => {
        await  modelVistaMensajesUsuario.registrarActualizar({
           numero:contactoSeleccionado.numero,
           mensaje:mensaje,
-          usuario:contactoSeleccionado.nombre
+          usuario:contactoSeleccionado.nombre,
+          visto:true
       });
       
         //await setInicial(true);

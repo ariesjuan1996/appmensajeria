@@ -61,7 +61,6 @@ const HomeComponent=React.forwardRef((props,ref) => {
         }
       },
       useRefrescarMensajes:async (value,nombre) =>{
-        console.log("nombre-useRefrescarMensajes",nombre);
         if(contactoSeleccionado!=null){
        
           if(contactoSeleccionado.numero==value.origen){
@@ -70,12 +69,15 @@ const HomeComponent=React.forwardRef((props,ref) => {
             if(nombre==null){
               nombre=value.origen;
             }
+            console.log("contactoSeleccionado.numero==value.origen");
             modelVistaMensajesUsuario.registrarActualizar({
               numero:contactoSeleccionado.numero,
               usuario:nombre,
               mensaje:value.mensaje,
+              visto:true
             });
-            listarMensajesUsuarioVista();
+            let numeroUsuario=contactoSeleccionado!=null ? contactoSeleccionado.numero : null;
+            listarMensajesUsuarioVista(numeroUsuario);
           }
         }else{
           if(nombre==null){
@@ -86,6 +88,7 @@ const HomeComponent=React.forwardRef((props,ref) => {
             numero:value.origen,
             usuario:nombre/*itemValue!=null ? itemValue.nombre : value.origen*/ ,
             mensaje:value.mensaje,
+            visto:false
           });
           
           await refrescarMensajeVista({
@@ -93,7 +96,7 @@ const HomeComponent=React.forwardRef((props,ref) => {
             usuario:nombre,
             mensaje:value.mensaje,
           });
-
+          await listarMensajesUsuarioVista();
         }
       }
     }),
@@ -104,7 +107,9 @@ const HomeComponent=React.forwardRef((props,ref) => {
    
   }, [listadoContactosTotal,contactosMensajeVista] );
   const listarMensajesUsuarioVista =React.useCallback( (e) => {
+    console.log("listData-cargar-listarMensajesUsuarioVista");
     modelVistaMensajesUsuario.listar().then((listData)=>{
+    
       dispatch(actualizarListadoUsuarioVista(listData));
     });
   },[contactosMensajeVista]);
@@ -116,10 +121,8 @@ const HomeComponent=React.forwardRef((props,ref) => {
   },[contactosMensajeVista]);
   const refrescarMensajeVista =React.useCallback( (e) => {
     let existe=false;
-    console.log("refrescarMensajeVista-");
     const newcontactosMensajeVista = {...contactosMensajeVista};
     Object.entries(newcontactosMensajeVista).forEach(([key, value]) => {
-      console.log("value",value);
       if(value.numero==e.numero){
         existe=true;
         value.horaUltimoMensaje=e.horaUltimoMensaje;
@@ -274,6 +277,7 @@ const seleccionarContacto=React.useCallback( (item)=>{
 const onCambioVista=React.useCallback( (data)=>{
   cambiarPagina(data);
   if(data=="HOME"){
+    setContactoSeleccionado(null);
    setListadoMensajes([]);
   }
   listarMensajesUsuarioVista();
@@ -296,10 +300,14 @@ const onCambioVista=React.useCallback( (data)=>{
         origen:dataUsuarioTelefono.numero,
         destino:data.numero,
       }).then(()=>{
-
+        modelVistaMensajesUsuario.actualizarVistaNumeroVista(data.numero);
       });
            
     }
+    React.useEffect(() => {
+      
+    }, [] );
+
     const DetalleContacto=React.memo((props)=>{
       return(
      

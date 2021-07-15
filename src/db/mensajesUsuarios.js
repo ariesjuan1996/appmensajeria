@@ -105,7 +105,6 @@ const registrarMensajeMasivo =async(request,numero,listadoTotal) => {
     await init();
     let stadoRegistro=false;
     try {
-        console.log("request",request);
         await request.forEach(async(element) => {
             let tempIdMensajeApi=("'"+element.id+"'");
             let responseValid = await Database.executeSql("select count(*) as cantidad from mensajesUsuarios where idmensajeapi="+tempIdMensajeApi+";",[]);
@@ -116,11 +115,13 @@ const registrarMensajeMasivo =async(request,numero,listadoTotal) => {
                 let tempFechaRegistro=("'"+element.fechaRegistro+"'");
                 let tempFechaEnvio=("'"+element.fechaEnvio+"'");
                 let usuario=listadoTotal[element.origen]==null || listadoTotal[element.origen]=="" || listadoTotal[element.origen]=="" ? null :listadoTotal[element.origen].nombre;
+                let visto=numero==element.origen ? true: false;
                 await vistaMensaje.registrarActualizar({
                     numero:element.origen,
                     mensaje:element.mensaje,
                     fechaRegistroApi:element.fechaRegistro,
-                    usuario:usuario
+                    usuario:usuario,
+                    visto:visto
                 });
                 let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen,fecharegistromensajeapi,idmensajeapi) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+","+tempFechaRegistro+","+tempIdMensajeApi+");",[]);
             }
