@@ -12,4 +12,9 @@ public class MainActivity extends ReactActivity {
   protected String getMainComponentName() {
     return "MyAppMensajeria";
   }
+  /*
+    @Override
+    public void onNewIntent(Intent intent) {
+      super.onNewIntent(intent);
+    }*/
 }

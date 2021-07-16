@@ -20,6 +20,8 @@ import messaging from '@react-native-firebase/messaging';
 //import { NetInfo } from 'react-native';
 import NetInfo from "@react-native-community/netinfo";
 import  {requestApi}  from './src/api/';
+
+
 messaging().setBackgroundMessageHandler(async remoteMessage => {
  // console.log("remoteMessage-fuera",remoteMessage);
 });
@@ -41,6 +43,11 @@ const AppComponent=memo((props,ref) => {
   const getToken = async () => {
     const token = await messaging().getToken();
     return token;
+  };
+ 
+  const handleButtonPress = () => {
+    alert("okkkk");
+    LocalNotification();
   };
   useEffect( () => {
     NetInfo.addEventListener(networkState => {
@@ -391,7 +398,9 @@ const AppComponent=memo((props,ref) => {
             
               <SocketContext.Provider value={socket}>
                 <MomentContext.Provider value={momentGlobal} >
+                 
                   <HomeApp ref={myRef}    dataUsuarioTelefono={dataUsuarioTelefono} />
+                  
                 </MomentContext.Provider>
               </SocketContext.Provider>
             

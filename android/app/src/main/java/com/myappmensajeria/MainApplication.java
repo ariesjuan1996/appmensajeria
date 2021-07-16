@@ -20,6 +20,7 @@ import com.bolan9999.SpringScrollViewPackage;
 import org.pgsqlite.SQLitePluginPackage;
 //import com.RNFetchBlob.RNFetchBlobPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage; 
+
 public class MainApplication extends Application implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost =
@@ -40,7 +41,7 @@ public class MainApplication extends Application implements ReactApplication {
           new SpringScrollViewPackage();
           new SQLitePluginPackage();
           new ReactNativeFirebaseAppPackage();
-          
+          new ReactNativePushNotificationPackage();
           return packages;
         }
 
