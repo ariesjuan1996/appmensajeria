@@ -16,15 +16,14 @@ import   servicesMensajes from './src/services/servicesMensajes';
 import RNFetchBlob from 'react-native-fetch-blob';
 import modelVistaMensajesUsuario from './src/db/vistaMensajesUsuario';
 import stylesApp from './src/css/AppStyle';
-import messaging from '@react-native-firebase/messaging';
 //import { NetInfo } from 'react-native';
 import NetInfo from "@react-native-community/netinfo";
 import  {requestApi}  from './src/api/';
-
-
+import  RemotePushController  from './src/RemotePushController';
+/*
 messaging().setBackgroundMessageHandler(async remoteMessage => {
  // console.log("remoteMessage-fuera",remoteMessage);
-});
+});*/
 const AppComponent=memo((props,ref) => {
   let myRef = useRef(null);
   const dispatch = useDispatch();
@@ -40,15 +39,7 @@ const AppComponent=memo((props,ref) => {
     isConnected:false
   }); 
   
-  const getToken = async () => {
-    const token = await messaging().getToken();
-    return token;
-  };
- 
-  const handleButtonPress = () => {
-    alert("okkkk");
-    LocalNotification();
-  };
+  
   useEffect( () => {
     NetInfo.addEventListener(networkState => {
       setStateConectInternet(networkState);
@@ -69,16 +60,11 @@ const AppComponent=memo((props,ref) => {
       })();
     }
   }, [stateConectInternet.isConnected,stateConectInternet.type,socket.connected]);
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-     
-    });
-    return unsubscribe;
-  }, []);
+
   useEffect(() => {
     (async()=>{
       if(dataUsuarioTelefono!=null && dataUsuarioTelefono.numero!=undefined){
-        await  tokenGenerar();
+       // await  tokenGenerar();
       }
     })();
   }, [dataUsuarioTelefono]);
@@ -134,16 +120,7 @@ const AppComponent=memo((props,ref) => {
     }
   }, [stateConectInternet.isConnected,stateConectInternet.type,socket.connected,dataUsuarioTelefono.numero,contactoCargado]);
   
-  const tokenGenerar=async ()=>{
-    
-    messaging().requestPermission()
-    .then(async() => {
-      let token=await getToken();
-      actualizarToken(token,dataUsuarioTelefono.numero);
-    })
-    .catch((error) => {
-    });
-  }
+  
   const obtenerMensajesPendientes=async(numerousuario)=>{
     try {
       let response=await requestApi(
@@ -385,6 +362,13 @@ const AppComponent=memo((props,ref) => {
   return (
     
       <Provider>
+        {
+          dataUsuarioTelefono.numero && contactoCargado ? 
+          <RemotePushController listadoContactosTotal={listadoContactosTotal}/>
+          :
+          null  
+        }
+        
         {loaderData ?
         <View
         
