@@ -8,25 +8,18 @@ import {
   View
 } from 'react-native';
 import {TextInput,  StyleSheet } from 'react-native';
-import {MensajeComponent} from './MensajeComponent';
+//import {FlatList} from 'react-native-bidirectional-infinite-scroll';
+import {MessageBubble} from './MessageBubble';
 import { Header, Left,Icon,Body} from 'native-base';
-import {FlatList} from 'react-native-bidirectional-infinite-scroll';
+import { FlatList } from '@stream-io/flat-list-mvcp';
 import {useRef} from 'react';
-import { Dimensions } from 'react-native';
-import {ImagenPreviaMensaje} from './ImagenPreviaMensaje'; 
-import {momentGlobal} from '../../../src/context/momentConfig'; 
+import servicesMensajes from '../../services/servicesMensajes';
+import {MomentContext,momentGlobal} from '../../../src/context/momentConfig'; 
 import modelVistaMensajesUsuario from '../../../src/db/vistaMensajesUsuario';
 import modelMensajesUsuario from '../../../src/db/mensajesUsuarios';
-import MultipleImagePicker from "@baronha/react-native-multiple-image-picker";
-import IconAntDesign from 'react-native-vector-icons/AntDesign';
-import { socket} from '../../../src/context/socket'; 
 
-import * as RNFS from 'react-native-fs';
-const anchoCaja=Dimensions.get("window").width-80;
+import {SocketContext, socket} from '../../../src/context/socket'; 
 const App =React.memo( (props) => {
-  const window = Dimensions.get("window");
-  const screen = Dimensions.get("screen");
-  //const [dimensions, setDimensions] = useState({ window, screen });
   const [loaderTop,setLoaderTop] = useState(false);
   const [inicial,setInicial] = useState(true);
   const {contactoSeleccionado,listadoMensajes,numero,refrescarPagina}=props;
@@ -39,11 +32,12 @@ const App =React.memo( (props) => {
     await props.refrescarMensajesScrooll(numero,tempFechaEnvio);
     setLoaderTop(false);
   };
-  const optionsCamara=[];
+  
   const atras=React.useCallback(()=>{
     props.onCambioVista("HOME");
   },[]);
- 
+  const loadMoreRecentMessages = async () => {
+  };
   const enviarMensajeApp = async () => {
   if(!(mensaje==null || mensaje=="")){
       try {
@@ -104,16 +98,6 @@ const App =React.memo( (props) => {
     }
     setMensaje(val);
   }
-  const seleccionarImagenes=async()=>{
-    const response = await MultipleImagePicker.openPicker(optionsCamara);
-    if(response.length>0){
-      
-      let base64si=await RNFS.readFile(response[0].realPath, 'base64');
-      let stringType="data:"+response[0].mine+";base64,"+base64si;
-      console.log("stringType-" ,stringType);
-      //console.log("response",base64si);
-    }
-  }
   if (!listadoMensajes) {
     return null;
   }
@@ -134,7 +118,7 @@ const HeaderComponent=React.memo(()=>{
   return (
     < >
       <HeaderComponent/>
-      <SafeAreaView style={{height:"100%"}}>
+      <SafeAreaView style={{height:"85%"}}>
      
         <FlatList
           scrollEnabled={true}
@@ -162,7 +146,7 @@ const HeaderComponent=React.memo(()=>{
           onEndReachedThreshold={50}
           renderItem={(itemData,indexItem ) => (
             
-            <MensajeComponent item={itemData} numero={numero}     key={indexItem}  length={listadoMensajes.length-1}/>
+            <MessageBubble item={itemData} numero={numero}     key={indexItem}  length={listadoMensajes.length-1}/>
           )}
         />
         </SafeAreaView>
@@ -171,29 +155,22 @@ const HeaderComponent=React.memo(()=>{
         <TextInput
           value={mensaje}  
           onChangeText={escribirMensaje}
-          style={{    
-            width:anchoCaja-60,
+          style={{       
+            width:"78%",
             backgroundColor:"#fff",
+            borderColor:"#676768",
             textAlignVertical: "top",
             minHeight: 20,
-            maxHeight: 80,
-            left:0,
-            position:"relative",
             height: "auto",
-            marginRight:50,
-            height:50} }
+            right:"10%"} }
           numberOfLines={2}
           blurOnSubmit={false}
           placeholder="Ingrese un nombre"
           multiline={true} />
-          <IconAntDesign  style={ {backgroundColor:"transparent",position:"absolute",right:0,height:50,textAlign:"center", width:50,borderRadius:50,top:0,lineHeight:50,textAlign:"center",color:"#6D7275"}}  name="camera" size={30} 
-          onPress={seleccionarImagenes}/> 
-         
-      </TouchableOpacity>
-      <TouchableOpacity activeOpacity={1}  onPress={enviarMensajeApp} style={styles.sendMessageButton2} >
-          
+        <TouchableOpacity activeOpacity={1}  onPress={enviarMensajeApp} style={styles.sendMessageButton2} >
           <Text style={styles.sendButtonTitle}>Enviar </Text>
         </TouchableOpacity>
+      </TouchableOpacity>
      
   </ >
   );
@@ -214,26 +191,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',                                          
     height:"auto",
+    margin:0,
     bottom:0,
-    width:anchoCaja,
-    borderRadius:10,
-    backgroundColor:"#fff",
-    borderWidth: 1,
-    bottom:10,
-    borderColor: "#fff",
-    left:10
+    width:"100%",
+    right:0,
+    backgroundColor:"#fff"
   },
   sendMessageButton2: {
     alignItems: 'center',
     position: 'absolute',                                          
-    height:55,
+    height:60,
     margin:0,
-    backgroundColor: '#007D75',
+    backgroundColor: 'blue',
     bottom:0,
-    width:55,
-    right:0,
-    borderRadius:55,
-    bottom:10
+    width:"20%",
+    right:0
   },
   sendButtonTitle: {
     color: 'white',

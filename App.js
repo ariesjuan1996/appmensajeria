@@ -311,6 +311,8 @@ const AppComponent=memo((props,ref) => {
       PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      //CAMERA
     ]);
     let existePermisoDetenido=true;
     for (var index in responsePermiso) {

@@ -10,6 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@baronha/react-native-multiple-image-picker": "^0.2.10",
     "@react-native-community/cameraroll": "^4.0.4",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/netinfo": "^6.0.0",
@@ -31,8 +32,10 @@
     "react-native-contacts": "^7.0.0",
     "react-native-device-info": "^8.1.2",
     "react-native-fetch-blob": "^0.10.8",
+    "react-native-fs": "^2.18.0",
     "react-native-gesture-handler": "^1.6.1",
     "react-native-image-picker": "^3.6.0",
+    "react-native-image-zoom-viewer-fix": "^2.2.31",
     "react-native-material-menu": "^1.2.0",
     "react-native-paper": "^4.8.1",
     "react-native-permissions": "^3.0.4",
