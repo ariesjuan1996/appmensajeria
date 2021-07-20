@@ -78,7 +78,6 @@ const App =React.memo( (props) => {
       }
         
       } catch (error) {
-      //  console.log("error",error);
       }finally{
       }
 

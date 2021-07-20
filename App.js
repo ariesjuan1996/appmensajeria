@@ -136,18 +136,6 @@ const AppComponent=memo((props,ref) => {
     }
   }  
 
-  const actualizarToken=async(token,numerousuario)=>{
-    try {
-      let response=await requestApi(
-      "usuarios/actualizarTokenUsuario?tokenUsuario="+token+"&numeroUsuario="+numerousuario,
-      {
-      },
-      "get"
-      );
-      
-    } catch (error) {
-    }
-  }  
 
   const initLoader=useCallback(async(num)=>{
     listarMensajesUsuarioVista();
@@ -182,10 +170,10 @@ const AppComponent=memo((props,ref) => {
         mensaje:val.mensaje,
         fechaEnvio:val.fechaEnvio,
         origen:val.origen,
+        tipomensaje:val.tipomensaje,
         nombre:nombreTemporalEnvio
       });
-      console.log("--",listadoContactosTotal[val.origen]);
-      console.log("myRef!=null",myRef!=null);
+
     if(myRef!=null){
       myRef.current.useRefrescarMensajes(val,nombreTemporalEnvio);
       let response=await socket.emit('actualizar-mensaje-estadomensaje', val);
@@ -197,7 +185,7 @@ const AppComponent=memo((props,ref) => {
         "idApi":val.idMensaje,
         "fechaRegistro":val.fechaRegistro
       });
-      console.log("val-val",val);
+      //console.log("val-val",val);
       if(myRef!=null){
         
         myRef.current.refrescarEstadoMensaje(

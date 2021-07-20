@@ -37,9 +37,7 @@ const HomeComponent=React.forwardRef((props,ref) => {
   const [loading,setLoader] = React.useState(false);
   const {paginaVista,cambiarPagina}=useData("HOME");
   let notif={};
-  const handleButtonPress = () => {
-    
-  };
+
   React.useImperativeHandle(
      ref, () => ({
       listarMensajesUsuarioVista:async (mensajes) =>{
@@ -51,7 +49,6 @@ const HomeComponent=React.forwardRef((props,ref) => {
             try {
               await refrescarEstadoMensajeSincronizado(mensajes);
             } catch (error) {
-             // console.log("error",error);          
             }
           //}
           
@@ -62,7 +59,6 @@ const HomeComponent=React.forwardRef((props,ref) => {
         try {
           await refrescarEstadoMensaje(mensajes[0]);
         } catch (error) {
-         // console.log("error",error);          
         }
       },
       useRefrescarMensajes:async (value,nombre) =>{
@@ -74,12 +70,12 @@ const HomeComponent=React.forwardRef((props,ref) => {
             if(nombre==null){
               nombre=value.origen;
             }
-            console.log("contactoSeleccionado.numero==value.origen");
             modelVistaMensajesUsuario.registrarActualizar({
               numero:contactoSeleccionado.numero,
               usuario:nombre,
               mensaje:value.mensaje,
-              visto:true
+              visto:true,
+              tipomensaje:value.tipomensaje
             });
             let numeroUsuario=contactoSeleccionado!=null ? contactoSeleccionado.numero : null;
             listarMensajesUsuarioVista(numeroUsuario);
@@ -93,7 +89,8 @@ const HomeComponent=React.forwardRef((props,ref) => {
             numero:value.origen,
             usuario:nombre/*itemValue!=null ? itemValue.nombre : value.origen*/ ,
             mensaje:value.mensaje,
-            visto:false
+            visto:false,
+            tipomensaje:value.tipomensaje,
           });
           
           await refrescarMensajeVista({
@@ -107,9 +104,7 @@ const HomeComponent=React.forwardRef((props,ref) => {
     }),
     [contactoSeleccionado,listadoContactosTotal,contactosMensajeVista,listadoMensajes]
   );
-  React.useEffect(() => {
-
-  }, [] );
+ 
   React.useEffect(() => {
    
   }, [listadoContactosTotal,contactosMensajeVista] );
@@ -309,9 +304,6 @@ const onCambioVista=React.useCallback( (data)=>{
       });
            
     }
-    React.useEffect(() => {
-      
-    }, [] );
 
     const DetalleContacto=React.memo((props)=>{
       return(

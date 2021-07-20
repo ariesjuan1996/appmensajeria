@@ -5,6 +5,7 @@ import nameApp from '../../app.json';
 const { fs } = RNFetchBlob;
 const initialState = {
   directorioPefil:fs.dirs.DCIMDir+"/"+nameApp.name+"/perfiles/",
+  directorioImagenesMensajes:fs.dirs.DCIMDir+"/"+nameApp.name+"/mensajes/",
   loaderData:true,
   loaderHome:false,
   dataUsuarioTelefono:{},

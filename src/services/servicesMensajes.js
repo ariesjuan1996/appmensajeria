@@ -26,19 +26,21 @@ const listarMensajesUsuario =async(e) => {
                 destino:element.destino,
                 mensaje:element.mensaje,
                 fechaEnvio:element.fechaEnvio,
-                origen:element.origen
+                origen:element.origen,
+                tipomensaje:element.tipomensaje
             });
             listData.push({
                 destino:element.destino,
                 mensaje:element.mensaje,
                 fechaEnvio:element.fechaEnvio,
-                origen:element.origen
+                origen:element.origen,
+                tipomensaje:element.tipomensaje
             });
         });
-        console.log("sed listData",listData);
+        //console.log("sed listData",listData);
         return  listData;
     } catch (error) {
-        console.log("sed listData error",error);
+//console.log("sed listData error",error);
     }
     return [];
 };

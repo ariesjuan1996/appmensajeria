@@ -7,7 +7,7 @@ const RemotePushController = (props) => {
   const dataUsuarioTelefono = useSelector((state) => state.dataUsuarioTelefono);
 const actualizarToken=async(token)=>{
   try {
-    console.log("dataUsuarioTelefono",dataUsuarioTelefono);
+
     let response=await requestApi(
     "usuarios/actualizarTokenUsuario?tokenUsuario="+token+"&numeroUsuario="+dataUsuarioTelefono.numero,
     {
@@ -23,15 +23,12 @@ const actualizarToken=async(token)=>{
       // (optional) Called when Token is generated (iOS and Android)
       onRegister: function (token) {
         actualizarToken( token.token);
-        console.log('TOKEN remote:', token.token);
       },
 
       // (required) Called when a remote or local notification is opened or received
       onNotification: function (notification) {
-        console.log('REMOTE NOTIFICATION ==>',notification);
         let nombreUsuario=props.listadoContactosTotal[notification.title]==undefined ? (notification.title) : (props.listadoContactosTotal[notification.title].nombre ? props.listadoContactosTotal[notification.title].nombre :notification.title )  ; 
         //let nombreUsuario="asas";
-        //console.log('nombreUsuario',listadoContactosTotal[notification.title]);
         LocalNotification.localNotification({
           /* Android Only Properties */
           channelId: notification.channelId ,

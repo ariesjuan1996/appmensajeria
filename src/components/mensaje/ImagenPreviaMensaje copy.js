@@ -26,12 +26,9 @@ export const ImagenPreviaMensaje = React.memo((props) => {
   const [dimensions, setDimensions] = useState({ window, screen });
   const [vertical, setVertical] = useState(true);
   const onChange = ({ window, screen }) => {
-      console.log("window.width",window);
     if(window.width>window.height){
-        console.log("horizontal");
         setVertical(false);
     }else{
-        console.log("veritical");
         setVertical(true);
     }
     setDimensions({ window, screen });
@@ -46,12 +43,9 @@ export const ImagenPreviaMensaje = React.memo((props) => {
     };
   });
   React.useEffect(() => {
-    console.log("dimensions");
     if(dimensions.window.width>dimensions.window.height){
-        console.log("horizontal");
         setVertical(false);
     }else{
-        console.log("vertical");
         setVertical(true);
     }
   },[]);

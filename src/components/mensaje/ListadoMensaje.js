@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import RNFetchBlob from 'react-native-fetch-blob';
+import { useSelector } from "react-redux";
 import {TextInput,  StyleSheet } from 'react-native';
 import {MensajeComponent} from './MensajeComponent';
 import { Header, Left,Icon,Body} from 'native-base';
@@ -31,6 +33,9 @@ const App =React.memo( (props) => {
   const [inicial,setInicial] = useState(true);
   const {contactoSeleccionado,listadoMensajes,numero,refrescarPagina}=props;
   const [mensaje,setMensaje] = useState("");
+  const [tipomensaje,setTipoMensaje] = useState("texto");
+  
+  const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
   let flatList = useRef();
   const loadMoreOlderMessages = async () => {
     setInicial(false);
@@ -51,13 +56,15 @@ const App =React.memo( (props) => {
           destino:contactoSeleccionado.numero,
           mensaje:mensaje,
           fechaEnvio:momentGlobal().format("YYYY-MM-DD HH:mm:ss"),
-          origen:numero
+          origen:numero,
+          tipomensaje:tipomensaje
        });
        await  modelVistaMensajesUsuario.registrarActualizar({
           numero:contactoSeleccionado.numero,
           mensaje:mensaje,
           usuario:contactoSeleccionado.nombre,
-          visto:true
+          visto:true,
+          tipomensaje:tipomensaje
       });
       
         //await setInicial(true);
@@ -73,7 +80,8 @@ const App =React.memo( (props) => {
         destino:contactoSeleccionado.numero,
         mensaje:mensaje,
         usuario:contactoSeleccionado.nombre,
-        idLocalId:idInsert
+        idLocalId:idInsert,
+        tipomensaje:tipomensaje
       };
       try {
          let response=await socket.emit('nuevo-mensaje', dataRequest);
@@ -84,14 +92,35 @@ const App =React.memo( (props) => {
       }
         
       } catch (error) {
-      //  console.log("error",error);
+      console.log("error",error);
       }finally{
       }
 
   }
 
   };
- 
+  const descargarImagen = async (numero,url) => {
+    console.log("url",url);
+    try {
+      //let extension=url.split(".")[url.split(".").length-1];
+
+      let response=await RNFetchBlob
+      .config({
+          path : directorioImagenesMensajes+numero+'.'+"jpg"
+      })
+      .fetch('GET', url);
+      console.log("response.path():",response.path());
+      // const saveImage=await RNFetchBlob.fs.scanFile([ { path : response.path(), mime : 'image/'+extension } ]);
+      return {estado:true,imagen: numero+'.'+"jpg"};      
+    } catch (error) {
+      console.log("error",error);
+      return {estado:false,imagen:null};
+      
+    }
+
+
+
+  };
   const refrescar=async()=>{
     loadMoreOlderMessages();
   }
@@ -102,16 +131,52 @@ const App =React.memo( (props) => {
     }else{
     // setHabilitar(true);
     }
+    setTipoMensaje("texto");
     setMensaje(val);
   }
   const seleccionarImagenes=async()=>{
     const response = await MultipleImagePicker.openPicker(optionsCamara);
     if(response.length>0){
+      setTipoMensaje("imagen");
+     
+      //setMensajesSeleccionadas
+      let opcionesMensajes=[];
+      response.forEach(async(element) => {
+        //response
+        let base64si=await RNFS.readFile(element.realPath, 'base64');
+        let stringType="data:"+element.mine+";base64,"+base64si;
+        const d = new Date();
+        let nameFile=d.getTime()+".jpg";
+        await RNFS.copyFileAssets(element.realPath, directorioImagenesMensajes+nameFile);
+        let idInsert=await modelMensajesUsuario.registrarMensajeEnvio({
+          destino:contactoSeleccionado.numero,
+          mensaje:stringType,
+          fechaEnvio:momentGlobal().format("YYYY-MM-DD HH:mm:ss"),
+          origen:numero,
+          tipomensaje:"imagen"
+       });
+
       
-      let base64si=await RNFS.readFile(response[0].realPath, 'base64');
-      let stringType="data:"+response[0].mine+";base64,"+base64si;
-      console.log("stringType-" ,stringType);
-      //console.log("response",base64si);
+       await  modelVistaMensajesUsuario.registrarActualizar({
+          numero:contactoSeleccionado.numero,
+          mensaje:nameFile,
+          usuario:contactoSeleccionado.nombre,
+          visto:true,
+          tipomensaje:"imagen"
+        });
+        let dataRequest={
+          origen:numero,
+          destino:contactoSeleccionado.numero,
+          mensaje:stringType,
+          usuario:contactoSeleccionado.nombre,
+          idLocalId:idInsert,
+          tipomensaje:"imagen"
+        };
+        
+        let response=await socket.emit('nuevo-mensaje', dataRequest); 
+        //opcionesMensajes.push(stringType);
+      });
+    
     }
   }
   if (!listadoMensajes) {
@@ -134,14 +199,14 @@ const HeaderComponent=React.memo(()=>{
   return (
     < >
       <HeaderComponent/>
-      <SafeAreaView style={{height:"100%"}}>
+      <SafeAreaView style={{height:"85%"}}>
      
         <FlatList
           scrollEnabled={true}
           initialNumToRender={8}
           maxToRenderPerBatch={2}
           onEndReachedThreshold={0.5}
-          style={{height:"100%",marginBottom:30,marginTop:20}}
+          style={{height:"75%",marginBottom:30,marginTop:20}}
           refreshing={loaderTop}
           nestedScrollEnabled={true} 
           ref={flatList}

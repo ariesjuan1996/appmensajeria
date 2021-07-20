@@ -3,7 +3,7 @@ import modelContacto from './contactos';
 
 import {momentGlobal} from '../context/momentConfig';
 const init=async()=>{
-    let results = await Database.executeSql("CREATE TABLE IF NOT EXISTS vistaMensajesUsuario(id INTEGER PRIMARY KEY,usuario text NOT NULL,mensaje text NOT NULL,fechaEnvio text NOT NULL,numero text NOT NULL,numeromensajesnoleidos text NOT NULL);",[]);
+    let results = await Database.executeSql("CREATE TABLE IF NOT EXISTS vistaMensajesUsuario(id INTEGER PRIMARY KEY,usuario text NOT NULL,mensaje text NOT NULL,fechaEnvio text NOT NULL,numero text NOT NULL,numeromensajesnoleidos text NOT NULL,tipomensaje text  NULL);",[]);
     //let results = await Database.executeSql("drop TABLE  IF  EXISTS mensajesUsuarios;",[]);
 }
 const registrarActualizar =async(data) => {
@@ -14,6 +14,7 @@ const registrarActualizar =async(data) => {
     let numero=("'"+data.numero+"'");
     let usuario=existeNombreUsuario ? ("'"+data.usuario+"'") : numero;
     let mensaje=("'"+data.mensaje+"'");
+    let tipomensaje=("'"+data.tipomensaje+"'");
     let stringSinComillas=null;
     let tempFechaEnvio=data.fechaRegistroApi==undefined || data.fechaRegistroApi=="" || data.fechaRegistroApi==null ? null : ("'"+momentGlobal(data.fechaRegistroApi).format("YYYY-MM-DD HH:mm:ss")+"'") ;
     if(tempFechaEnvio==null){
@@ -33,8 +34,13 @@ const registrarActualizar =async(data) => {
                 cantidadVisto=generarNumeroVisto.rows.raw().length ? (generarNumeroVisto.rows.raw()[0].numeromensajesnoleidos==null ? 0 :generarNumeroVisto.rows.raw()[0].numeromensajesnoleidos ): (0) ;
                 cantidadVisto=parseInt(cantidadVisto)+1;
             }
-            let resposeRegistroUsuario = await Database.executeSql("insert into vistaMensajesUsuario(usuario,mensaje,fechaEnvio,numero,numeromensajesnoleidos) values("+usuario+","+mensaje+","+tempFechaEnvio+","+numero+","+cantidadVisto+");",[]);
-            return resposeRegistroUsuario;
+            
+            let mensajeFormat=data.tipomensaje=="texto" ? mensaje: "null";
+            console.log("mensajeFormat",mensajeFormat);
+            /*let resposeRegistroUsuario = await Database.executeSql("insert into vistaMensajesUsuario(usuario,mensaje,fechaEnvio,numero,numeromensajesnoleidos,tipomensaje) values("+usuario+","+mensajeFormat+","+tempFechaEnvio+","+numero+","+cantidadVisto+","+tipomensaje+");",[]);
+            console.log("insert into vistaMensajesUsuario(usuario,mensaje,fechaEnvio,numero,numeromensajesnoleidos,tipomensaje) values("+usuario+","+mensajeFormat+","+tempFechaEnvio+","+numero+","+cantidadVisto+","+tipomensaje+");");
+            return resposeRegistroUsuario;*/
+            return null;
         }
         return "ok";
     }else{
@@ -46,18 +52,17 @@ const registrarActualizar =async(data) => {
             let cantidadVisto=0;
             if(!visto){
                 let generarNumeroVisto = await Database.executeSql("select numeromensajesnoleidos from vistaMensajesUsuario where  numero="+numero+";",[]);
-                let generarNumeroVisto2 = await Database.executeSql("select * from vistaMensajesUsuario where  numero="+numero+";",[]);
-                
                 cantidadVisto=generarNumeroVisto.rows.raw().length ? (generarNumeroVisto.rows.raw()[0].numeromensajesnoleidos==null ? 0 :generarNumeroVisto.rows.raw()[0].numeromensajesnoleidos ): (0) ;
                 cantidadVisto=parseInt(cantidadVisto)+1;
             }
-            let resposeRegistroUsuario = await Database.executeSql("update vistaMensajesUsuario set usuario="+usuario+",mensaje="+mensaje+",fechaEnvio="+tempFechaEnvio+",numeromensajesnoleidos="+cantidadVisto+" where numero="+numero+" ;",[]);
+            let resposeRegistroUsuario = await Database.executeSql("update vistaMensajesUsuario set usuario="+usuario+",mensaje="+mensaje+",fechaEnvio="+tempFechaEnvio+",numeromensajesnoleidos="+cantidadVisto+",tipomensaje="+tipomensaje+" where numero="+numero+" ;",[]);
             return resposeRegistroUsuario;
         }
         return "ok";
     }
    } catch (error) {
-        console.log("Okkkk-error:",error);  
+       console.log("Okkkk-error:",error);  
+       return null;
    }
     
 };
@@ -67,7 +72,7 @@ const actualizarVistaNumeroVista =async(data) => {
      let resposeRegistroUsuario = await Database.executeSql("update vistaMensajesUsuario set "+"numeromensajesnoleidos=0 where numero="+data+" ;",[]);
      return resposeRegistroUsuario;
     } catch (error) {
-         console.log("Okkkk-error: siii",error);  
+        // console.log("Okkkk-error: siii",error);  
     }
      
  };

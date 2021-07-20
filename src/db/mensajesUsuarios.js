@@ -1,18 +1,26 @@
 import Database from './database';
 import vistaMensaje from './vistaMensajesUsuario';
 const init=async()=>{
-    let results = await Database.executeSql("CREATE TABLE IF NOT EXISTS mensajesUsuarios(id INTEGER PRIMARY KEY,destino text NOT NULL,origen text NOT NULL,mensaje text NOT NULL,fechaEnvio text NOT NULL,idmensajeapi text  NULL,fecharegistromensajeapi text  NULL);",[]);
+    let results = await Database.executeSql("CREATE TABLE IF NOT EXISTS mensajesUsuarios(id INTEGER PRIMARY KEY,destino text NOT NULL,origen text NOT NULL,mensaje text NOT NULL,fechaEnvio text NOT NULL,idmensajeapi text  NULL,fecharegistromensajeapi text  NULL,tipomensaje text  NULL);",[]);
     //let results = await Database.executeSql("drop TABLE  IF  EXISTS mensajesUsuarios;",[]);
 }
 
 const registrarMensajeEnvio =async(data) => {
     await init();
+    try {
+    let tipomensaje=("'"+data.tipomensaje+"'");
     let tempOrigen=("'"+data.origen+"'");
     let tempDestino=("'"+data.destino+"'");
-    let tempMensaje=("'"+data.mensaje+"'");
+    let tempMensaje=data.tipomensaje=="texto" ? ("'"+data.mensaje+"'") : "null";
     let tempFechaEnvio=("'"+data.fechaEnvio+"'");
-    let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+");",[]);
-    return resposeRegistroUsuario.insertId;
+    /*let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen,tipomensaje) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+","+tipomensaje+");",[]);
+    return resposeRegistroUsuario.insertId; 
+    */
+        return null;   
+    } catch (error) {
+        console.log("error",error);
+        return null;
+    }
 };
 const actualizarUsuarioVisto =async(data) => {
     await init();
@@ -36,10 +44,9 @@ const actualizarListadoUsuarioVista =async(data) => {
             
           } catch (error) {
 
-            console.log("error",error);
+            //console.log("error",error);
           }        
         });
-        console.log("idActualizados:_-okkkk ",idActualizados);
         return idActualizados.join();                
     } catch (error) {
         return false;
@@ -109,9 +116,10 @@ const registrarMensajeMasivo =async(request,numero,listadoTotal) => {
             let tempIdMensajeApi=("'"+element.id+"'");
             let responseValid = await Database.executeSql("select count(*) as cantidad from mensajesUsuarios where idmensajeapi="+tempIdMensajeApi+";",[]);
             if(responseValid.rows.raw()[0].cantidad==0){
+                let tipomensaje=("'"+element.tipomensaje+"'");
                 let tempOrigen=("'"+element.origen+"'");
                 let tempDestino=("'"+element.destino+"'");
-                let tempMensaje=("'"+element.mensaje+"'");
+                let tempMensaje=data.tipomensaje=="texto" ? ("'"+element.mensaje+"'") : "null";
                 let tempFechaRegistro=("'"+element.fechaRegistro+"'");
                 let tempFechaEnvio=("'"+element.fechaEnvio+"'");
                 let usuario=listadoTotal[element.origen]==null || listadoTotal[element.origen]=="" || listadoTotal[element.origen]=="" ? null :listadoTotal[element.origen].nombre;
@@ -121,16 +129,17 @@ const registrarMensajeMasivo =async(request,numero,listadoTotal) => {
                     mensaje:element.mensaje,
                     fechaRegistroApi:element.fechaRegistro,
                     usuario:usuario,
-                    visto:visto
+                    visto:visto,
+                    tipomensaje:data.tipomensaje
                 });
-                let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen,fecharegistromensajeapi,idmensajeapi) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+","+tempFechaRegistro+","+tempIdMensajeApi+");",[]);
+              let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen,fecharegistromensajeapi,idmensajeapi,tipomensaje) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+","+tempFechaRegistro+","+tempIdMensajeApi+","+tipomensaje+");",[]);
             }
             
         });
         stadoRegistro=true;
         return stadoRegistro;
     } catch (error) {
-        console.log("error",error);
+        //console.log("error",error);
         stadoRegistro=false;
         return stadoRegistro;
     }
