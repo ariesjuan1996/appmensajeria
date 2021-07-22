@@ -11,12 +11,10 @@ const registrarMensajeEnvio =async(data) => {
     let tipomensaje=("'"+data.tipomensaje+"'");
     let tempOrigen=("'"+data.origen+"'");
     let tempDestino=("'"+data.destino+"'");
-    let tempMensaje=data.tipomensaje=="texto" ? ("'"+data.mensaje+"'") : "null";
+    let tempMensaje=data.tipomensaje=="texto" ? ("'"+data.mensaje+"'") : ("'"+data.mensaje+"'");
     let tempFechaEnvio=("'"+data.fechaEnvio+"'");
-    /*let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen,tipomensaje) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+","+tipomensaje+");",[]);
+    let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen,tipomensaje) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+","+tipomensaje+");",[]);
     return resposeRegistroUsuario.insertId; 
-    */
-        return null;   
     } catch (error) {
         console.log("error",error);
         return null;

@@ -35,11 +35,10 @@ const registrarActualizar =async(data) => {
                 cantidadVisto=parseInt(cantidadVisto)+1;
             }
             
-            let mensajeFormat=data.tipomensaje=="texto" ? mensaje: "null";
-            console.log("mensajeFormat",mensajeFormat);
-            /*let resposeRegistroUsuario = await Database.executeSql("insert into vistaMensajesUsuario(usuario,mensaje,fechaEnvio,numero,numeromensajesnoleidos,tipomensaje) values("+usuario+","+mensajeFormat+","+tempFechaEnvio+","+numero+","+cantidadVisto+","+tipomensaje+");",[]);
+            let mensajeFormat=mensaje;
+            let resposeRegistroUsuario = await Database.executeSql("insert into vistaMensajesUsuario(usuario,mensaje,fechaEnvio,numero,numeromensajesnoleidos,tipomensaje) values("+usuario+","+mensajeFormat+","+tempFechaEnvio+","+numero+","+cantidadVisto+","+tipomensaje+");",[]);
             console.log("insert into vistaMensajesUsuario(usuario,mensaje,fechaEnvio,numero,numeromensajesnoleidos,tipomensaje) values("+usuario+","+mensajeFormat+","+tempFechaEnvio+","+numero+","+cantidadVisto+","+tipomensaje+");");
-            return resposeRegistroUsuario;*/
+            return resposeRegistroUsuario;
             return null;
         }
         return "ok";

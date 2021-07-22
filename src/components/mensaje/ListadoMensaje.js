@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import RNFetchBlob from 'react-native-fetch-blob';
 import { useSelector } from "react-redux";
 import {TextInput,  StyleSheet } from 'react-native';
 import {MensajeComponent} from './MensajeComponent';
@@ -22,7 +21,7 @@ import modelMensajesUsuario from '../../../src/db/mensajesUsuarios';
 import MultipleImagePicker from "@baronha/react-native-multiple-image-picker";
 import IconAntDesign from 'react-native-vector-icons/AntDesign';
 import { socket} from '../../../src/context/socket'; 
-
+import RNFetchBlob from 'react-native-fetch-blob';
 import * as RNFS from 'react-native-fs';
 const anchoCaja=Dimensions.get("window").width-80;
 const App =React.memo( (props) => {
@@ -99,28 +98,6 @@ const App =React.memo( (props) => {
   }
 
   };
-  const descargarImagen = async (numero,url) => {
-    console.log("url",url);
-    try {
-      //let extension=url.split(".")[url.split(".").length-1];
-
-      let response=await RNFetchBlob
-      .config({
-          path : directorioImagenesMensajes+numero+'.'+"jpg"
-      })
-      .fetch('GET', url);
-      console.log("response.path():",response.path());
-      // const saveImage=await RNFetchBlob.fs.scanFile([ { path : response.path(), mime : 'image/'+extension } ]);
-      return {estado:true,imagen: numero+'.'+"jpg"};      
-    } catch (error) {
-      console.log("error",error);
-      return {estado:false,imagen:null};
-      
-    }
-
-
-
-  };
   const refrescar=async()=>{
     loadMoreOlderMessages();
   }
@@ -138,43 +115,69 @@ const App =React.memo( (props) => {
     const response = await MultipleImagePicker.openPicker(optionsCamara);
     if(response.length>0){
       setTipoMensaje("imagen");
-     
-      //setMensajesSeleccionadas
       let opcionesMensajes=[];
+      const assetsDirExists = await RNFetchBlob.fs.isDir(directorioImagenesMensajes);
+
+      if (!assetsDirExists) {
+          await RNFetchBlob.fs.mkdir(directorioImagenesMensajes);
+      }
       response.forEach(async(element) => {
-        //response
-        let base64si=await RNFS.readFile(element.realPath, 'base64');
-        let stringType="data:"+element.mine+";base64,"+base64si;
-        const d = new Date();
-        let nameFile=d.getTime()+".jpg";
-        await RNFS.copyFileAssets(element.realPath, directorioImagenesMensajes+nameFile);
+        //RNFetchBlob
+        let base64si=await RNFS.readFile(element.realPath, 'ascii');
+        let base64Formatos=null;
+        let pathRegistro=null;
+        try {
+          const fs = RNFetchBlob.fs
+          const base64 = RNFetchBlob.base64
+          const codificada=base64.encode(base64si);
+          base64Formatos="data:"+element.mine+";base64,"+codificada;
+          var d=new Date();
+          let nameFile=d.getTime();
+          var path = directorioImagenesMensajes +nameFile+ '.'+element.mine.split("/")[1];
+          pathRegistro=nameFile+ '.'+element.mine.split("/")[1];
+          //base64Formatos=codificada;
+          fs.createFile(path, base64.encode(base64si), 'base64')
+
+        } catch (error) {
+          console.log("error",error);
+        }
+        try {
+        
         let idInsert=await modelMensajesUsuario.registrarMensajeEnvio({
           destino:contactoSeleccionado.numero,
-          mensaje:stringType,
+          mensaje:pathRegistro,
           fechaEnvio:momentGlobal().format("YYYY-MM-DD HH:mm:ss"),
           origen:numero,
           tipomensaje:"imagen"
        });
-
       
        await  modelVistaMensajesUsuario.registrarActualizar({
           numero:contactoSeleccionado.numero,
-          mensaje:nameFile,
+          mensaje:pathRegistro,
           usuario:contactoSeleccionado.nombre,
           visto:true,
           tipomensaje:"imagen"
         });
+        await props.refrescarVista({
+          origen:numero,
+          destino:contactoSeleccionado.numero,
+          fechaEnvio:null
+        });
+        flatList.current.scrollToEnd({animated:false, index: 0 });
         let dataRequest={
           origen:numero,
           destino:contactoSeleccionado.numero,
-          mensaje:stringType,
+          mensaje:base64Formatos,
           usuario:contactoSeleccionado.nombre,
           idLocalId:idInsert,
           tipomensaje:"imagen"
         };
         
         let response=await socket.emit('nuevo-mensaje', dataRequest); 
-        //opcionesMensajes.push(stringType);
+        } catch (error) {
+            console.log("error",error);
+        }
+        
       });
     
     }
