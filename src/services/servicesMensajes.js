@@ -2,9 +2,8 @@ import Database from '../db/database';
 import  {requestApi}  from '../api';
 import modelMensajesUsuario from '../db/mensajesUsuarios';
 
-import modelVistaMensajesUsuario from '../db/vistaMensajesUsuario';
-import {momentGlobal} from '../context/momentConfig';
-
+import { useSelector } from "react-redux";
+import RNFetchBlob from 'react-native-fetch-blob';
 const init=async()=>{
     results = await Database.executeSql("CREATE TABLE IF NOT EXISTS contacto(id INTEGER PRIMARY KEY,nombre TEXT NOT NULL,telefono TEXT NOT NULL UNIQUE);",[]);
    
@@ -44,19 +43,29 @@ const listarMensajesUsuario =async(e) => {
     }
     return [];
 };
-const enviarMensaje =async(e) => {
+const registrarImagen =async(base64si) => {
     try {
-        
+        const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
+        const assetsDirExists = await RNFetchBlob.fs.isDir(directorioImagenesMensajes);
 
-        return   ;
+        if (!assetsDirExists) {
+            await RNFetchBlob.fs.mkdir(directorioImagenesMensajes);
+        }
+        //const codificada=base64.encode(base64si);
+        base64Formatos="data:"+element.mine+";base64,"+codificada;
+        var d=new Date();
+        let nameFile=d.getTime();
+        var path = directorioImagenesMensajes +nameFile+ '.'+element.mine.split("/")[1];
+        pathRegistro=nameFile+ '.'+element.mine.split("/")[1];
+        //base64Formatos=codificada;
+        fs.createFile(path, base64.encode(base64si), 'base64');
+
+        return pathRegistro;
     } catch (error) {
     }finally{
         
     }
-    return {
-        estado:false,
-        mensaje:"Hubo un error en el envio del mensaje."
-    };
+    return null;
 };
 const obtenerDatosUsuario =async(numeroUsuarios) => {
     try {
@@ -85,4 +94,33 @@ const obtenerDatosUsuario =async(numeroUsuarios) => {
     }
     
 };
-export default {listarMensajesUsuario,enviarMensaje,obtenerDatosUsuario };
+const descargarImagen = async (directorioImagenesMensajes,url) => {
+    try {
+      const assetsDirExists = await RNFetchBlob.fs.isDir(directorioImagenesMensajes);
+
+      if (!assetsDirExists) {
+          await RNFetchBlob.fs.mkdir(directorioImagenesMensajes);
+      }
+      let extension=url.split(".")[url.split(".").length-1];
+      var d=new Date();
+      let nameFile=d.getTime();
+      var path = directorioImagenesMensajes +nameFile+ '.'+extension;
+
+
+      let response=await RNFetchBlob
+      .config({
+          path :path
+      })
+      .fetch('GET', url);
+      const saveImage=await RNFetchBlob.fs.scanFile([ { path : response.path(), mime : 'image/'+extension } ]);
+      return nameFile+ '.'+extension;      
+    } catch (error) {
+        console.log("val.mensaje",error);
+        return null;
+      
+    }
+
+
+
+  };
+export default {listarMensajesUsuario,obtenerDatosUsuario,registrarImagen ,descargarImagen};

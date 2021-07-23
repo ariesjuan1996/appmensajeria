@@ -34,6 +34,7 @@ const AppComponent=memo((props,ref) => {
   const loaderData = useSelector((state) => state.loaderData);
   const [usuarioExiste,setUsuarioExiste] = useState(null);
   const [contactoCargado,setContactoCargado] = useState(false);
+  const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
   const [stateConectInternet,setStateConectInternet] = useState({
     type:null,
     isConnected:false
@@ -98,6 +99,7 @@ const AppComponent=memo((props,ref) => {
       inicializarSoket(dataUsuarioTelefono.numero);
     }
   },[dataUsuarioTelefono.numero,contactoCargado]);
+  
   useEffect( () => {
     if(stateConectInternet.isConnected && socket.connected && dataUsuarioTelefono.numero!=null && dataUsuarioTelefono.numero!="" && dataUsuarioTelefono.numero!=undefined && contactoCargado==true && myRef!=null){
       (async()=>{
@@ -105,7 +107,7 @@ const AppComponent=memo((props,ref) => {
         try {
           let listDataEnviar=await obtenerMensajesPendientes(dataUsuarioTelefono.numero);
           if(listDataEnviar.length){
-            await modelMensajesUsuario.registrarMensajeMasivo(listDataEnviar,dataUsuarioTelefono.numero,listadoContactosTotal);
+            await modelMensajesUsuario.registrarMensajeMasivo(directorioImagenesMensajes,listDataEnviar,dataUsuarioTelefono.numero,listadoContactosTotal);
             //console.log("listadoContactosTotal",listadoContactosTotal);
             let responseEmit=await socket.emit('actualizar-mensaje-estadomensaje-masivo', listDataEnviar);
             myRef.current.listarMensajesUsuarioVista();
@@ -119,7 +121,6 @@ const AppComponent=memo((props,ref) => {
       })();
     }
   }, [stateConectInternet.isConnected,stateConectInternet.type,socket.connected,dataUsuarioTelefono.numero,contactoCargado]);
-  
   
   const obtenerMensajesPendientes=async(numerousuario)=>{
     try {
@@ -162,6 +163,14 @@ const AppComponent=memo((props,ref) => {
   const inicializarSoket=useCallback((num)=>{
     socket.on("nuevo-mensaje-"+num,async(val)=>{
       //console.log("val.origen",val.origen);
+      let pathImagen=null;
+      if(val.tipomensaje=="imagen"){
+          
+          pathImagen=await servicesMensajes.descargarImagen(directorioImagenesMensajes,val.mensaje);
+          //tempMensaje=("'"+pathImagen+"'");
+          val.mensaje=pathImagen;
+         
+      }
      
       let nombreTemporalEnvio=listadoContactosTotal[val.origen]==null || listadoContactosTotal[val.origen]=="" || listadoContactosTotal[val.origen]==undefined ? null : listadoContactosTotal[val.origen].nombre;
       modelMensajesUsuario.registrarMensajeEnvio({
@@ -364,7 +373,7 @@ const AppComponent=memo((props,ref) => {
         
         style={stylesApp.View}
         >
-          <Text>00</Text>
+          <Text></Text>
           <Image style={stylesApp.Image}  source={require('./src/assets/logoapp.jpg')} /></View> :     
         <> 
           {

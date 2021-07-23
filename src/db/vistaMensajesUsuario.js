@@ -81,7 +81,7 @@ const listar =async() => {
         await init();
         await modelContacto.init();
         //id INTEGER PRIMARY KEY,usuario text NOT NULL,mensaje text NOT NULL,fechaEnvio text NOT NULL
-        let listado = await Database.executeSql("select vistaMensajesUsuario.numero,id,usuario as nombre,mensaje as mensaje,vistaMensajesUsuario.fechaEnvio,contacto.imagen as imagenContacto,vistaMensajesUsuario.numeromensajesnoleidos  from vistaMensajesUsuario as vistaMensajesUsuario left join contacto as contacto on contacto.numero=vistaMensajesUsuario.numero  order by  vistaMensajesUsuario.fechaEnvio desc;",[]);
+        let listado = await Database.executeSql("select vistaMensajesUsuario.numero,id,usuario as nombre,mensaje as mensaje,vistaMensajesUsuario.fechaEnvio,contacto.imagen as imagenContacto,vistaMensajesUsuario.numeromensajesnoleidos,vistaMensajesUsuario.tipomensaje  from vistaMensajesUsuario as vistaMensajesUsuario left join contacto as contacto on contacto.numero=vistaMensajesUsuario.numero  order by  vistaMensajesUsuario.fechaEnvio desc;",[]);
         tempData=listado.rows.raw();
         tempData.forEach(element => {
           element.horaUltimoMensaje=momentGlobal(element.fechaEnvio).format("HH:mm");

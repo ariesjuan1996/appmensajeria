@@ -1,8 +1,8 @@
 
 import * as React from 'react';
-import {Platform} from 'react-native';
+import {Platform,View} from 'react-native';
 import {  ListItem, Left, Body, Right, Thumbnail, Text } from 'native-base';
-
+import IconEntypo from 'react-native-vector-icons/Entypo';
 import {MomentContext,momentGlobal} from '../../../src/context/momentConfig';
 import { useSelector } from "react-redux";
 const ItemContacto= (props)=> {
@@ -27,7 +27,14 @@ const ItemContacto= (props)=> {
             </Left>
             <Body>
               <Text>{data.nombre}</Text>
-              <Text>{data.mensaje}</Text>
+              {
+                data.tipomensaje=="imagen" ?
+                <View >
+                
+                <IconEntypo  style={{ color:"#000",fontSize:18,alignItems:"flex-end"}}  name="image" size={30} /> 
+                <Text>Imagen</Text></View> :
+                <Text>{data.mensaje}</Text>
+              }
               <Text note>{data.ultimoMensaje}</Text>
             </Body>
             <Right>
