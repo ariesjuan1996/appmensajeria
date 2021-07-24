@@ -1,6 +1,8 @@
 import Database from './database';
 import vistaMensaje from './vistaMensajesUsuario';
 import servicesMensajes from '../services/servicesMensajes';
+import RNFetchBlob from 'react-native-fetch-blob';
+import * as RNFS from 'react-native-fs';
 const init=async()=>{
     let results = await Database.executeSql("CREATE TABLE IF NOT EXISTS mensajesUsuarios(id INTEGER PRIMARY KEY,destino text NOT NULL,origen text NOT NULL,mensaje text NOT NULL,fechaEnvio text NOT NULL,idmensajeapi text  NULL,fecharegistromensajeapi text  NULL,tipomensaje text  NULL);",[]);
     //let results = await Database.executeSql("drop TABLE  IF  EXISTS mensajesUsuarios;",[]);
@@ -102,11 +104,28 @@ const obtenerEstadoMensajeDespuesSincronizar =async(reId) => {
     let resposeRegistroUsuario = await Database.executeSql( sql,[]);
     return resposeRegistroUsuario.rows.raw();
 };
-const obtenerMensajesSinEnviar =async(reId) => {
+const obtenerMensajesSinEnviar =async(directorioImagenesMensajes) => {
     await init();
     let sql= "SELECT * FROM mensajesUsuarios as mensajes where mensajes.idmensajeapi is null;";
     let resposeRegistroUsuario = await Database.executeSql( sql,[]);
-    return resposeRegistroUsuario.rows.raw();
+    //tipomensaje
+    //id INTEGER PRIMARY KEY,destino text NOT NULL,origen text NOT NULL,mensaje text NOT NULL,fechaEnvio text NOT NULL,idmensajeapi text  NULL,fecharegistromensajeapi text  NULL,tipomensaje text  NULL
+    const assetsDirExists = await RNFetchBlob.fs.isDir(directorioImagenesMensajes);
+
+    if (!assetsDirExists) {
+        await RNFetchBlob.fs.mkdir(directorioImagenesMensajes);
+    }
+    const base64 = RNFetchBlob.base64;
+    let arraySinEnviar=resposeRegistroUsuario.rows.raw();
+    arraySinEnviar.forEach(async(element) => {
+        if(element.tipomensaje=="imagen"){
+            let base64si=await RNFS.readFile(element.mensaje, 'ascii');
+            const codificada=base64.encode(base64si);
+            console.log("codificada",codificada);
+            element.mensaje=codificada;
+        }
+    });
+    return arraySinEnviar;
 };
 //,dataUsuarioTelefono.numero,listadoContactosTotal
 const registrarMensajeMasivo =async(request,numero,listadoTotal) => {

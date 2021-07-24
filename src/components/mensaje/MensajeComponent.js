@@ -1,9 +1,12 @@
 import React from 'react';
-import {StyleSheet, Text, View,Image} from 'react-native';
+import {StyleSheet, Text, View,Image,TouchableOpacity} from 'react-native';
 import {Platform} from 'react-native';
 import { useSelector } from "react-redux";
 import IconFontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import IconEntypo from 'react-native-vector-icons/Entypo';
+import * as RNFS from 'react-native-fs';
+
+import RNFetchBlob from 'react-native-fetch-blob';
 /**
  * UI Component for message item, in message list (FlatList).
  */
@@ -11,17 +14,28 @@ export const MensajeComponent = React.memo((props) => {
   const {mensaje,numero,fechaEnvio,origen,idmensajeapi,tipomensaje}=props.item.item;
   const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
   const path=directorioImagenesMensajes+ mensaje;
+  const zoomImage=async()=>{
+    let mine=path.split(".")[1];
+    let base64si=await RNFS.readFile(path, 'ascii');
+    const base64 = RNFetchBlob.base64
+    const codificada=base64.encode(base64si);
+    let base64Formatos="data:"+mine+";base64,"+codificada;
+
+    props.seleccionarImagen(base64Formatos);
+  }
   if (props.numero==origen ? true : false) {
     // Align sent messages to right side of the screen, with a grey'ish background.
     return (
       <View
-        style={[styles.messageBubble]}>
+        style={[styles.messageBubble]}
+        >
          
         {
           tipomensaje=="imagen" ?
+          <TouchableOpacity onPress={zoomImage}>
           <Image style={styles.imageMenssage} 
-          
-          source={{uri :(Platform.OS === 'android' ? 'file://' + path  : '' + path) } }/> :
+           
+          source={{uri :(Platform.OS === 'android' ? 'file://' + path  : '' + path) } }/></TouchableOpacity> :
 
           <Text style={styles.myMessageText}>{mensaje}</Text>
           
@@ -43,7 +57,8 @@ export const MensajeComponent = React.memo((props) => {
       <View style={styles.messageBubbleDestino}>
           {
           tipomensaje=="imagen" ?
-          <Image style={styles.imageMenssage} source={ {uri :(Platform.OS === 'android' ? 'file://' + path  : '' + path) }}/> :
+          <TouchableOpacity onPress={zoomImage}>
+          <Image style={styles.imageMenssage} source={ {uri :(Platform.OS === 'android' ? 'file://' + path  : '' + path) }}/></TouchableOpacity> :
           
           <Text style={styles.myMessageText}>{mensaje}</Text>
           

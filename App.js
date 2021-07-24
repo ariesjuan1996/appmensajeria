@@ -50,7 +50,7 @@ const AppComponent=memo((props,ref) => {
   useEffect( () => {
     if(stateConectInternet.isConnected && socket.connected){
       (async()=>{
-        let listDataEnviar=await modelMensajesUsuario.obtenerMensajesSinEnviar();
+        let listDataEnviar=await modelMensajesUsuario.obtenerMensajesSinEnviar(directorioImagenesMensajes);
        
         try {
           let response=await socket.emit('sincronizar-mensaje', listDataEnviar);

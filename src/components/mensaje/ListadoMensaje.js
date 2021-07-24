@@ -1,9 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, { useState} from 'react';
 import {
   SafeAreaView,
-
   Text,
-  Touchable,
   TouchableOpacity,
   View
 } from 'react-native';
@@ -25,15 +23,13 @@ import RNFetchBlob from 'react-native-fetch-blob';
 import * as RNFS from 'react-native-fs';
 const anchoCaja=Dimensions.get("window").width-80;
 const App =React.memo( (props) => {
-  const window = Dimensions.get("window");
-  const screen = Dimensions.get("screen");
-  //const [dimensions, setDimensions] = useState({ window, screen });
   const [loaderTop,setLoaderTop] = useState(false);
   const [inicial,setInicial] = useState(true);
   const {contactoSeleccionado,listadoMensajes,numero,refrescarPagina}=props;
   const [mensaje,setMensaje] = useState("");
+  const [imagenSeleccionada,setImagenSeleccionada] = useState("");
   const [tipomensaje,setTipoMensaje] = useState("texto");
-  
+  const [tipoVista,setTipoVista] = React.useState(true);
   const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
   let flatList = useRef();
   const loadMoreOlderMessages = async () => {
@@ -43,59 +39,65 @@ const App =React.memo( (props) => {
     await props.refrescarMensajesScrooll(numero,tempFechaEnvio);
     setLoaderTop(false);
   };
-  const optionsCamara=[];
+  const optionsCamara={
+    singleSelectedMode:false,
+    isPreview:true,
+    mediaType:"all"
+  };
   const atras=React.useCallback(()=>{
     props.onCambioVista("HOME");
   },[]);
- 
+  const atrasPrevio=()=>{
+    setTipoVista(!tipoVista);
+  }
   const enviarMensajeApp = async () => {
-  if(!(mensaje==null || mensaje=="")){
-      try {
-        let idInsert=await modelMensajesUsuario.registrarMensajeEnvio({
+    if(!(mensaje==null || mensaje=="")){
+        try {
+          let idInsert=await modelMensajesUsuario.registrarMensajeEnvio({
+            destino:contactoSeleccionado.numero,
+            mensaje:mensaje,
+            fechaEnvio:momentGlobal().format("YYYY-MM-DD HH:mm:ss"),
+            origen:numero,
+            tipomensaje:tipomensaje
+        });
+        await  modelVistaMensajesUsuario.registrarActualizar({
+            numero:contactoSeleccionado.numero,
+            mensaje:mensaje,
+            usuario:contactoSeleccionado.nombre,
+            visto:true,
+            tipomensaje:tipomensaje
+        });
+        
+          //await setInicial(true);
+        setInicial(true);
+        await props.refrescarVista({
+          origen:numero,
+          destino:contactoSeleccionado.numero,
+          fechaEnvio:null
+        });
+        flatList.current.scrollToEnd({animated:false, index: 0 });
+        let dataRequest={
+          origen:numero,
           destino:contactoSeleccionado.numero,
           mensaje:mensaje,
-          fechaEnvio:momentGlobal().format("YYYY-MM-DD HH:mm:ss"),
-          origen:numero,
-          tipomensaje:tipomensaje
-       });
-       await  modelVistaMensajesUsuario.registrarActualizar({
-          numero:contactoSeleccionado.numero,
-          mensaje:mensaje,
           usuario:contactoSeleccionado.nombre,
-          visto:true,
+          idLocalId:idInsert,
           tipomensaje:tipomensaje
-      });
-      
-        //await setInicial(true);
-      setInicial(true);
-      await props.refrescarVista({
-        origen:numero,
-        destino:contactoSeleccionado.numero,
-        fechaEnvio:null
-      });
-      flatList.current.scrollToEnd({animated:false, index: 0 });
-      let dataRequest={
-        origen:numero,
-        destino:contactoSeleccionado.numero,
-        mensaje:mensaje,
-        usuario:contactoSeleccionado.nombre,
-        idLocalId:idInsert,
-        tipomensaje:tipomensaje
-      };
-      try {
-         let response=await socket.emit('nuevo-mensaje', dataRequest);
-         setMensaje("");
-      } catch (error) {
-        setMensaje("");
-        estadoEnvioMensaje=false;
-      }
-        
-      } catch (error) {
-      console.log("error",error);
-      }finally{
-      }
+        };
+        try {
+          let response=await socket.emit('nuevo-mensaje', dataRequest);
+          setMensaje("");
+        } catch (error) {
+          setMensaje("");
+          estadoEnvioMensaje=false;
+        }
+          
+        } catch (error) {
+        console.log("error",error);
+        }finally{
+        }
 
-  }
+    }
 
   };
   const refrescar=async()=>{
@@ -112,75 +114,83 @@ const App =React.memo( (props) => {
     setMensaje(val);
   }
   const seleccionarImagenes=async()=>{
-    const response = await MultipleImagePicker.openPicker(optionsCamara);
-    if(response.length>0){
-      setTipoMensaje("imagen");
-      let opcionesMensajes=[];
-      const assetsDirExists = await RNFetchBlob.fs.isDir(directorioImagenesMensajes);
-
-      if (!assetsDirExists) {
-          await RNFetchBlob.fs.mkdir(directorioImagenesMensajes);
-      }
-      response.forEach(async(element) => {
-        //RNFetchBlob
-        let base64si=await RNFS.readFile(element.realPath, 'ascii');
-        let base64Formatos=null;
-        let pathRegistro=null;
-        try {
-          const fs = RNFetchBlob.fs
-          const base64 = RNFetchBlob.base64
-          const codificada=base64.encode(base64si);
-          base64Formatos="data:"+element.mine+";base64,"+codificada;
-          var d=new Date();
-          let nameFile=d.getTime();
-          var path = directorioImagenesMensajes +nameFile+ '.'+element.mine.split("/")[1];
-          pathRegistro=nameFile+ '.'+element.mine.split("/")[1];
-          //base64Formatos=codificada;
-          fs.createFile(path, base64.encode(base64si), 'base64')
-
-        } catch (error) {
-          console.log("error",error);
+    try {
+      const response = await MultipleImagePicker.openPicker(optionsCamara);
+      if(response.length>0){
+        setTipoMensaje("imagen");
+        const assetsDirExists = await RNFetchBlob.fs.isDir(directorioImagenesMensajes);
+        if (!assetsDirExists) {
+            await RNFetchBlob.fs.mkdir(directorioImagenesMensajes);
         }
-        try {
-        
-        let idInsert=await modelMensajesUsuario.registrarMensajeEnvio({
-          destino:contactoSeleccionado.numero,
-          mensaje:pathRegistro,
-          fechaEnvio:momentGlobal().format("YYYY-MM-DD HH:mm:ss"),
-          origen:numero,
-          tipomensaje:"imagen"
-       });
-      
-       await  modelVistaMensajesUsuario.registrarActualizar({
-          numero:contactoSeleccionado.numero,
-          mensaje:pathRegistro,
-          usuario:contactoSeleccionado.nombre,
-          visto:true,
-          tipomensaje:"imagen"
-        });
-        await props.refrescarVista({
-          origen:numero,
-          destino:contactoSeleccionado.numero,
-          fechaEnvio:null
-        });
-        flatList.current.scrollToEnd({animated:false, index: 0 });
-        let dataRequest={
-          origen:numero,
-          destino:contactoSeleccionado.numero,
-          mensaje:base64Formatos,
-          usuario:contactoSeleccionado.nombre,
-          idLocalId:idInsert,
-          tipomensaje:"imagen"
-        };
-        
-        let response=await socket.emit('nuevo-mensaje', dataRequest); 
-        } catch (error) {
+        response.forEach(async(element) => {
+          //RNFetchBlob
+          let base64si=await RNFS.readFile(element.realPath, 'ascii');
+          let base64Formatos=null;
+          let pathRegistro=null;
+          try {
+            const fs = RNFetchBlob.fs
+            const base64 = RNFetchBlob.base64
+            const codificada=base64.encode(base64si);
+            base64Formatos="data:"+element.mine+";base64,"+codificada;
+            var d=new Date();
+            let nameFile=d.getTime();
+            var path = directorioImagenesMensajes +nameFile+ '.'+element.mine.split("/")[1];
+            pathRegistro=nameFile+ '.'+element.mine.split("/")[1];
+            //base64Formatos=codificada;
+            fs.createFile(path, base64.encode(base64si), 'base64')
+  
+          } catch (error) {
             console.log("error",error);
-        }
+          }
+          try {
+          
+          let idInsert=await modelMensajesUsuario.registrarMensajeEnvio({
+            destino:contactoSeleccionado.numero,
+            mensaje:pathRegistro,
+            fechaEnvio:momentGlobal().format("YYYY-MM-DD HH:mm:ss"),
+            origen:numero,
+            tipomensaje:"imagen"
+         });
         
-      });
-    
+         await  modelVistaMensajesUsuario.registrarActualizar({
+            numero:contactoSeleccionado.numero,
+            mensaje:pathRegistro,
+            usuario:contactoSeleccionado.nombre,
+            visto:true,
+            tipomensaje:"imagen"
+          });
+          await props.refrescarVista({
+            origen:numero,
+            destino:contactoSeleccionado.numero,
+            fechaEnvio:null
+          });
+          flatList.current.scrollToEnd({animated:false, index: 0 });
+          let dataRequest={
+            origen:numero,
+            destino:contactoSeleccionado.numero,
+            mensaje:base64Formatos,
+            usuario:contactoSeleccionado.nombre,
+            idLocalId:idInsert,
+            tipomensaje:"imagen"
+          };
+          
+          let response=await socket.emit('nuevo-mensaje', dataRequest); 
+          } catch (error) {
+              console.log("error",error);
+          }
+          
+        });
+      
+      }   
+    } catch (errorEpp) {
+      console.log("errorEpp",errorEpp);
     }
+
+  }
+  const seleccionarImagen=(props)=>{
+    setImagenSeleccionada(props);
+    setTipoVista(!tipoVista);
+    //alert("seleccionar imagen");
   }
   if (!listadoMensajes) {
     return null;
@@ -201,67 +211,75 @@ const HeaderComponent=React.memo(()=>{
 
   return (
     < >
-      <HeaderComponent/>
-      <SafeAreaView style={{height:"85%"}}>
-     
-        <FlatList
-          scrollEnabled={true}
-          initialNumToRender={8}
-          maxToRenderPerBatch={2}
-          onEndReachedThreshold={0.5}
-          style={{height:"75%",marginBottom:30,marginTop:20}}
-          refreshing={loaderTop}
-          nestedScrollEnabled={true} 
-          ref={flatList}
-          onScroll={(e)=>{}}
-          onContentSizeChange={(e) =>{
-            if(inicial){
-              flatList.current.scrollToEnd({animated:false, index: 0 });
-            }
+   
+      <View style={(tipoVista ? {opacity:1} : {opacity:0}),{height:"100%"} }>
+          <HeaderComponent/>
+          <SafeAreaView style={{height:"85%"}}>
+        
+            <FlatList
+              scrollEnabled={true}
+              initialNumToRender={8}
+              maxToRenderPerBatch={2}
+              onEndReachedThreshold={0.5}
+              style={{height:"75%",marginBottom:30,marginTop:20}}
+              refreshing={loaderTop}
+              nestedScrollEnabled={true} 
+              ref={flatList}
+              onScroll={(e)=>{}}
+              onContentSizeChange={(e) =>{
+                if(inicial){
+                  flatList.current.scrollToEnd({animated:false, index: 0 });
+                }
+                
+              }}
+              initialNumToRender={0}
+              windowSize={22} 
+              data={listadoMensajes}
+              onScrollToIndexFailed={()=>{}}
+              keyExtractor =  {(item) => JSON.stringify(item)}
+              onRefresh={(e) =>refrescar(e)}
+              onStartReachedThreshold={50} 
+              onEndReachedThreshold={50}
+              renderItem={(itemData,indexItem ) => (
+                
+                <MensajeComponent seleccionarImagen={seleccionarImagen} item={itemData} numero={numero}     key={indexItem}  length={listadoMensajes.length-1}/>
+              )}
+            />
+            </SafeAreaView>
+        
+          <TouchableOpacity style={styles.sendMessageButton}>
+            <TextInput
+              value={mensaje}  
+              onChangeText={escribirMensaje}
+              style={{    
+                width:anchoCaja-60,
+                backgroundColor:"#fff",
+                textAlignVertical: "top",
+                minHeight: 20,
+                maxHeight: 80,
+                left:0,
+                position:"relative",
+                height: "auto",
+                marginRight:50,
+                height:50} }
+              numberOfLines={2}
+              blurOnSubmit={false}
+              placeholder="Ingrese un nombre"
+              multiline={true} />
+              <IconAntDesign  style={ {backgroundColor:"transparent",position:"absolute",right:0,height:50,textAlign:"center", width:50,borderRadius:50,top:0,lineHeight:50,textAlign:"center",color:"#6D7275"}}  name="camera" size={30} 
+              onPress={seleccionarImagenes}/> 
             
-          }}
-          initialNumToRender={0}
-          windowSize={22} 
-          data={listadoMensajes}
-          onScrollToIndexFailed={()=>{}}
-          keyExtractor =  {(item) => JSON.stringify(item)}
-          onRefresh={(e) =>refrescar(e)}
-          onStartReachedThreshold={50} 
-          onEndReachedThreshold={50}
-          renderItem={(itemData,indexItem ) => (
-            
-            <MensajeComponent item={itemData} numero={numero}     key={indexItem}  length={listadoMensajes.length-1}/>
-          )}
-        />
-        </SafeAreaView>
-     
-      <TouchableOpacity style={styles.sendMessageButton}>
-        <TextInput
-          value={mensaje}  
-          onChangeText={escribirMensaje}
-          style={{    
-            width:anchoCaja-60,
-            backgroundColor:"#fff",
-            textAlignVertical: "top",
-            minHeight: 20,
-            maxHeight: 80,
-            left:0,
-            position:"relative",
-            height: "auto",
-            marginRight:50,
-            height:50} }
-          numberOfLines={2}
-          blurOnSubmit={false}
-          placeholder="Ingrese un nombre"
-          multiline={true} />
-          <IconAntDesign  style={ {backgroundColor:"transparent",position:"absolute",right:0,height:50,textAlign:"center", width:50,borderRadius:50,top:0,lineHeight:50,textAlign:"center",color:"#6D7275"}}  name="camera" size={30} 
-          onPress={seleccionarImagenes}/> 
-         
-      </TouchableOpacity>
-      <TouchableOpacity activeOpacity={1}  onPress={enviarMensajeApp} style={styles.sendMessageButton2} >
-          
-          <Text style={styles.sendButtonTitle}>Enviar </Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={1}  onPress={enviarMensajeApp} style={styles.sendMessageButton2} >
+            <Text style={styles.sendButtonTitle}>Enviar </Text>
+          </TouchableOpacity>
+      </View> 
+      {
+        !tipoVista ?
+        <ImagenPreviaMensaje contactoSeleccionado={contactoSeleccionado} imagenSeleccionada={imagenSeleccionada} atras={atrasPrevio}  />
+        :
+        null
+      }
      
   </ >
   );
