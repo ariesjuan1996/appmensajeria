@@ -13,7 +13,9 @@ import modelMensajesUsuario from './db/mensajesUsuarios';
 import modelVistaMensajesUsuario from './db/vistaMensajesUsuario';
 import { actualizarListadoUsuarioVista } from "../src/store/actions";
 //import   servicesMensajes from '../src/services/servicesMensajes';
-
+import * as RNFS from 'react-native-fs';
+//import  modelMensajesUsuarios from './db/mensajesUsuarios';
+import RNFetchBlob from 'react-native-fetch-blob';
 import   style from '../src/css/HomeAppStyle';
 const Tab = createMaterialTopTabNavigator();
 const HomeComponent=React.forwardRef((props,ref) => {
@@ -35,9 +37,10 @@ const HomeComponent=React.forwardRef((props,ref) => {
   const [listadoContactos,setListadoContactos] = React.useState([]);
   const [listadoMensajes,setListadoMensajes] = React.useState([]);
   const [loading,setLoader] = React.useState(false);
+  const [listaImagenes,setListaImagenes] = React.useState([]);
+  const [listaImagenesRuta,setListaImagenesRuta] = React.useState([]);
   const {paginaVista,cambiarPagina}=useData("HOME");
-  let notif={};
-
+  const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
   React.useImperativeHandle(
      ref, () => ({
       listarMensajesUsuarioVista:async (mensajes) =>{
@@ -114,12 +117,30 @@ const HomeComponent=React.forwardRef((props,ref) => {
       dispatch(actualizarListadoUsuarioVista(listData));
     });
   },[contactosMensajeVista]);
-  const refrescarImagen  =React.useCallback( (e) => {
-    let temData=[...contactosMensajeVista];
-    contactosMensajeVista.forEach(element => {
-      
+  const refrescarImagenes=()=>{
+    actualizarListadoImagenes(contactoSeleccionado.numero,dataUsuarioTelefono.numero);
+  }
+  const actualizarListadoImagenes=async(numeroDestino,numeroOrigen)=>{
+    const base64 = RNFetchBlob.base64;
+    let listadoFormato =await modelMensajesUsuario.listarImagenes(numeroDestino,numeroOrigen);
+    let tempImagenes=[];
+    let tempImagenesRutas=[];
+    await listadoFormato.forEach(async(element) => {
+        if(element.tipomensaje=="imagen"){
+          tempImagenesRutas.push(directorioImagenesMensajes+element.mensaje);
+          setListaImagenesRuta(tempImagenesRutas);
+          let base64si=await RNFS.readFile(directorioImagenesMensajes+element.mensaje, 'ascii');
+          let mine=element.mensaje.split(".")[1];
+          const codificada=base64.encode(base64si);
+          let base64Formatos="data:"+mine+";base64,"+codificada;
+          tempImagenes.push({url:base64Formatos});
+          setListaImagenes(tempImagenes);
+        
+        }
     });
-  },[contactosMensajeVista]);
+   
+   
+  }
   const refrescarMensajeVista =React.useCallback( (e) => {
     let existe=false;
     const newcontactosMensajeVista = {...contactosMensajeVista};
@@ -192,7 +213,7 @@ const HomeComponent=React.forwardRef((props,ref) => {
     setListadoMensajes(temData);
     
   });
-  
+
   const refrescarEstadoMensajeSincronizado=React.useCallback(async(request)=>{
     let temData=[...listadoMensajes];
     let listData=await modelMensajesUsuario.obtenerEstadoMensajeDespuesSincronizar(request);
@@ -217,7 +238,7 @@ const HomeComponent=React.forwardRef((props,ref) => {
     
   },[listadoMensajes]);
   const listarMensajesUsuario= React.useCallback(async(e) => {
-    let fechaMaxima=await modelMensajesUsuario.obtenerFechaMaxima(e);
+    //let fechaMaxima=await modelMensajesUsuario.obtenerFechaMaxima(e);
     modelMensajesUsuario.listarMensajeUsuario(e.origen,e.destino).then(async(listData)=>{
       listData=listData.reverse ();
       setListadoMensajes(listData);
@@ -300,11 +321,12 @@ const onCambioVista=React.useCallback( (data)=>{
         origen:dataUsuarioTelefono.numero,
         destino:data.numero,
       }).then(()=>{
+        actualizarListadoImagenes(data.numero,dataUsuarioTelefono.numero);
         modelVistaMensajesUsuario.actualizarVistaNumeroVista(data.numero);
       });
            
     }
-
+ 
     const DetalleContacto=React.memo((props)=>{
       return(
      
@@ -366,13 +388,16 @@ const onCambioVista=React.useCallback( (data)=>{
             <ListadoMensaje 
               lengthMensajes={listadoMensajes.length}
               listadoMensajes={listadoMensajes} 
+              listaImagenes={listaImagenes} 
               listarMensajesUsuario={listarMensajesUsuario}
               refrescarMensajesScrooll={refrescarMensajesScrooll}
               refrescarVista={refrescarVista}
               numero={dataUsuarioTelefono.numero}
               contactoSeleccionado={contactoSeleccionado}
               seleccionarContacto={seleccionarContacto} 
-              onCambioVista={onCambioVista}/>
+              onCambioVista={onCambioVista}
+              refrescarImagenes={refrescarImagenes}
+              listaImagenesRuta={listaImagenesRuta}/>
           </>) :
           (  <>
             <MainTabNavigator {...props} onCambiarActivaBuscador={onCambiarActivaBuscador} buscarContacto={buscarContacto}/>
@@ -387,7 +412,7 @@ const onCambioVista=React.useCallback( (data)=>{
                     <Tab.Screen   name="Mensajes" children={(props)=><ListadoContactosScreen  onContactoSeleccionado={onContactoSeleccionado} /> }>
                       
                     </Tab.Screen>
-                    <Tab.Screen   name="Historias"  onCambioVista={onCambioVista}  children={(props)=><Historial/> }>
+                    <Tab.Screen   name="Datos"  onCambioVista={onCambioVista}  children={(props)=><Historial/> }>
                      
                     </Tab.Screen>
                   </Tab.Navigator>

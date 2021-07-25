@@ -44,6 +44,7 @@ public class MainApplication extends Application implements ReactApplication {
           new ReactNativeFirebaseAppPackage();
           new ReactNativePushNotificationPackage();
           new RNFSPackage();
+         // new MultipleImagePickerPackage();
           return packages;
         }
 

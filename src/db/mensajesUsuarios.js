@@ -21,7 +21,6 @@ const registrarMensajeEnvio =async(data) => {
     let resposeRegistroUsuario = await Database.executeSql("insert into mensajesUsuarios(destino,mensaje,fechaEnvio,origen,tipomensaje) values("+tempDestino+","+tempMensaje+","+tempFechaEnvio+","+tempOrigen+","+tipomensaje+");",[]);
     return resposeRegistroUsuario.insertId; 
     } catch (error) {
-        console.log("error",error);
         return null;
     }
 };
@@ -46,8 +45,6 @@ const actualizarListadoUsuarioVista =async(data) => {
             idActualizados.push(tempId);
             
           } catch (error) {
-
-            //console.log("error",error);
           }        
         });
         return idActualizados.join();                
@@ -65,7 +62,7 @@ const obtenerFechaMaxima =async(data) => {
 const listarMensajeUsuario =async(reqnumeroorigen,reqnumerodestino) => {
     await init();
     //destino text NOT NULL,origen
-    let resposeRegistroUsuario = await Database.executeSql("SELECT * FROM mensajesUsuarios as mensajes WHERE  ((mensajes.origen='"+reqnumeroorigen+"' and mensajes.destino='"+reqnumerodestino+"') OR (mensajes.origen='"+reqnumerodestino+"' and mensajes.destino='"+reqnumeroorigen+"') ) ORDER BY mensajes.fechaenvio desc limit 0,15;",[]);
+    let resposeRegistroUsuario = await Database.executeSql("SELECT * FROM mensajesUsuarios as mensajes WHERE  ((mensajes.origen='"+reqnumeroorigen+"' and mensajes.destino='"+reqnumerodestino+"') OR (mensajes.origen='"+reqnumerodestino+"' and mensajes.destino='"+reqnumeroorigen+"') ) ORDER BY mensajes.fechaenvio desc limit 0,8;",[]);
     return resposeRegistroUsuario.rows.raw();
 };
 const listarMensajeUsuarioPaginado =async(reqnumeroorigen,reqnumerodestino,reId) => {
@@ -121,7 +118,6 @@ const obtenerMensajesSinEnviar =async(directorioImagenesMensajes) => {
         if(element.tipomensaje=="imagen"){
             let base64si=await RNFS.readFile(element.mensaje, 'ascii');
             const codificada=base64.encode(base64si);
-            console.log("codificada",codificada);
             element.mensaje=codificada;
         }
     });
@@ -172,9 +168,15 @@ const registrarMensajeMasivo =async(request,numero,listadoTotal) => {
         stadoRegistro=true;
         return stadoRegistro;
     } catch (error) {
-        //console.log("error",error);
         stadoRegistro=false;
         return stadoRegistro;
     }
 };
-export default {registrarMensajeEnvio,actualizarUsuarioVisto,obtenerFechaMaxima ,listarMensajeUsuario,listarMensajeUsuarioPaginado,listarMensajeUsuarioPaginadoDespues,obtenerEstadoMensajeDespues,obtenerMensajesSinEnviar,actualizarListadoUsuarioVista,obtenerEstadoMensajeDespuesSincronizar,registrarMensajeMasivo};
+const listarImagenes =async(reqnumeroorigen,reqnumerodestino) => {
+    await init();
+    let sql= "SELECT tipomensaje,mensaje FROM mensajesUsuarios as mensajes WHERE  ((mensajes.origen='"+reqnumeroorigen+"' and mensajes.destino='"+reqnumerodestino+"') OR (mensajes.origen='"+reqnumerodestino+"' and mensajes.destino='"+reqnumeroorigen+"' )  ) and (not tipomensaje='texto')  ORDER BY mensajes.fechaenvio desc  ;";
+    let resposeRegistroUsuario = await Database.executeSql( sql,[]);
+    let datosData=resposeRegistroUsuario.rows.raw();
+    return datosData;
+};
+export default {registrarMensajeEnvio,actualizarUsuarioVisto,obtenerFechaMaxima ,listarMensajeUsuario,listarMensajeUsuarioPaginado,listarMensajeUsuarioPaginadoDespues,obtenerEstadoMensajeDespues,obtenerMensajesSinEnviar,actualizarListadoUsuarioVista,obtenerEstadoMensajeDespuesSincronizar,registrarMensajeMasivo,listarImagenes};

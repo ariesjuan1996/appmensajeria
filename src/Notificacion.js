@@ -25,7 +25,6 @@ class NotificationHandler {
 
   // (optional) Called when the user fails to register for remote notifications. Typically occurs when APNS is having issues, or the device is a simulator. (iOS)
   onRegistrationError(err) {
-    console.log(err);
   }
   
   attachRegister(handler) {

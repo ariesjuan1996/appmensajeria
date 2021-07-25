@@ -20,11 +20,15 @@ import stylesApp from './src/css/AppStyle';
 import NetInfo from "@react-native-community/netinfo";
 import  {requestApi}  from './src/api/';
 import  RemotePushController  from './src/RemotePushController';
+
+import { LogBox } from 'react-native';
+
+
 /*
 messaging().setBackgroundMessageHandler(async remoteMessage => {
- // console.log("remoteMessage-fuera",remoteMessage);
 });*/
 const AppComponent=memo((props,ref) => {
+  LogBox.ignoreLogs(['Animated: `useNativeDriver`']);
   let myRef = useRef(null);
   const dispatch = useDispatch();
   const directorioPefil = useSelector((state) => state.directorioPefil);
@@ -108,13 +112,11 @@ const AppComponent=memo((props,ref) => {
           let listDataEnviar=await obtenerMensajesPendientes(dataUsuarioTelefono.numero);
           if(listDataEnviar.length){
             await modelMensajesUsuario.registrarMensajeMasivo(directorioImagenesMensajes,listDataEnviar,dataUsuarioTelefono.numero,listadoContactosTotal);
-            //console.log("listadoContactosTotal",listadoContactosTotal);
             let responseEmit=await socket.emit('actualizar-mensaje-estadomensaje-masivo', listDataEnviar);
             myRef.current.listarMensajesUsuarioVista();
           }
 
         } catch (error) {
-          console.log("error",error);
         }
 
 
@@ -132,7 +134,6 @@ const AppComponent=memo((props,ref) => {
       ); 
       return response.estado ? response.data : [];
     } catch (error) {
-      console.log("error-conect",error);
       return [];
     }
   }  
@@ -162,7 +163,6 @@ const AppComponent=memo((props,ref) => {
   });
   const inicializarSoket=useCallback((num)=>{
     socket.on("nuevo-mensaje-"+num,async(val)=>{
-      //console.log("val.origen",val.origen);
       let pathImagen=null;
       if(val.tipomensaje=="imagen"){
           
@@ -194,7 +194,6 @@ const AppComponent=memo((props,ref) => {
         "idApi":val.idMensaje,
         "fechaRegistro":val.fechaRegistro
       });
-      //console.log("val-val",val);
       if(myRef!=null){
         
         myRef.current.refrescarEstadoMensaje(

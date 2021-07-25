@@ -36,37 +36,12 @@ const listarMensajesUsuario =async(e) => {
                 tipomensaje:element.tipomensaje
             });
         });
-        //console.log("sed listData",listData);
         return  listData;
     } catch (error) {
-//console.log("sed listData error",error);
     }
     return [];
 };
-const registrarImagen =async(base64si) => {
-    try {
-        const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
-        const assetsDirExists = await RNFetchBlob.fs.isDir(directorioImagenesMensajes);
 
-        if (!assetsDirExists) {
-            await RNFetchBlob.fs.mkdir(directorioImagenesMensajes);
-        }
-        //const codificada=base64.encode(base64si);
-        base64Formatos="data:"+element.mine+";base64,"+codificada;
-        var d=new Date();
-        let nameFile=d.getTime();
-        var path = directorioImagenesMensajes +nameFile+ '.'+element.mine.split("/")[1];
-        pathRegistro=nameFile+ '.'+element.mine.split("/")[1];
-        //base64Formatos=codificada;
-        fs.createFile(path, base64.encode(base64si), 'base64');
-
-        return pathRegistro;
-    } catch (error) {
-    }finally{
-        
-    }
-    return null;
-};
 const obtenerDatosUsuario =async(numeroUsuarios) => {
     try {
        
@@ -115,7 +90,6 @@ const descargarImagen = async (directorioImagenesMensajes,url) => {
       const saveImage=await RNFetchBlob.fs.scanFile([ { path : response.path(), mime : 'image/'+extension } ]);
       return nameFile+ '.'+extension;      
     } catch (error) {
-        console.log("val.mensaje",error);
         return null;
       
     }
@@ -123,4 +97,4 @@ const descargarImagen = async (directorioImagenesMensajes,url) => {
 
 
   };
-export default {listarMensajesUsuario,obtenerDatosUsuario,registrarImagen ,descargarImagen};
+export default {listarMensajesUsuario,obtenerDatosUsuario ,descargarImagen};

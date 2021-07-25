@@ -16,21 +16,28 @@ import {ImagenPreviaMensaje} from './ImagenPreviaMensaje';
 import {momentGlobal} from '../../../src/context/momentConfig'; 
 import modelVistaMensajesUsuario from '../../../src/db/vistaMensajesUsuario';
 import modelMensajesUsuario from '../../../src/db/mensajesUsuarios';
+import ItemContactoInformacion from '../contacto/ItemContactoInformacion';
 import MultipleImagePicker from "@baronha/react-native-multiple-image-picker";
 import IconAntDesign from 'react-native-vector-icons/AntDesign';
 import { socket} from '../../../src/context/socket'; 
 import RNFetchBlob from 'react-native-fetch-blob';
 import * as RNFS from 'react-native-fs';
+import { Thumbnail } from 'native-base';
 const anchoCaja=Dimensions.get("window").width-80;
 const App =React.memo( (props) => {
   const [loaderTop,setLoaderTop] = useState(false);
   const [inicial,setInicial] = useState(true);
-  const {contactoSeleccionado,listadoMensajes,numero,refrescarPagina}=props;
+  const {contactoSeleccionado,listadoMensajes,numero,refrescarPagina,lengthMensajes,listaImagenes,listaImagenesRuta}=props;
   const [mensaje,setMensaje] = useState("");
   const [imagenSeleccionada,setImagenSeleccionada] = useState("");
   const [tipomensaje,setTipoMensaje] = useState("texto");
   const [tipoVista,setTipoVista] = React.useState(true);
+  const [itemContactoInformacion,setItemContactoInformacion] = React.useState(false);
+  const [indexImagen,setIndexImagen] = React.useState(0);
+  //const [listaImagenes,setListaImagenes] = useState([]);
   const directorioImagenesMensajes = useSelector((state) => state.directorioImagenesMensajes);
+  const dataUsuarioTelefono = useSelector((state) => state.dataUsuarioTelefono);
+  const directorioPefil = useSelector((state) => state.directorioPefil);
   let flatList = useRef();
   const loadMoreOlderMessages = async () => {
     setInicial(false);
@@ -50,6 +57,10 @@ const App =React.memo( (props) => {
   const atrasPrevio=()=>{
     setTipoVista(!tipoVista);
   }
+  React.useEffect(() => {
+    console.log("listadoMensajes",listadoMensajes);
+  },[]);
+
   const enviarMensajeApp = async () => {
     if(!(mensaje==null || mensaje=="")){
         try {
@@ -93,7 +104,6 @@ const App =React.memo( (props) => {
         }
           
         } catch (error) {
-        console.log("error",error);
         }finally{
         }
 
@@ -131,16 +141,16 @@ const App =React.memo( (props) => {
             const fs = RNFetchBlob.fs
             const base64 = RNFetchBlob.base64
             const codificada=base64.encode(base64si);
-            base64Formatos="data:"+element.mine+";base64,"+codificada;
+            base64Formatos="data:"+element.mime+";base64,"+codificada;
             var d=new Date();
             let nameFile=d.getTime();
-            var path = directorioImagenesMensajes +nameFile+ '.'+element.mine.split("/")[1];
-            pathRegistro=nameFile+ '.'+element.mine.split("/")[1];
-            //base64Formatos=codificada;
+            
+            var path = directorioImagenesMensajes +nameFile+ '.'+element.mime.split("/")[1];
+            pathRegistro=nameFile+ '.'+element.mime.split("/")[1];
+          //base64Formatos=codificada;
             fs.createFile(path, base64.encode(base64si), 'base64')
-  
+            
           } catch (error) {
-            console.log("error",error);
           }
           try {
           
@@ -173,47 +183,62 @@ const App =React.memo( (props) => {
             idLocalId:idInsert,
             tipomensaje:"imagen"
           };
-          
           let response=await socket.emit('nuevo-mensaje', dataRequest); 
+          await props.refrescarImagenes();
           } catch (error) {
-              console.log("error",error);
           }
           
         });
       
       }   
     } catch (errorEpp) {
-      console.log("errorEpp",errorEpp);
     }
 
   }
   const seleccionarImagen=(props)=>{
+    let indexSelect=0;
+    listaImagenesRuta.forEach((element,index) => {
+      if( element==props){
+        indexSelect=index;
+
+      }
+    });
+    setIndexImagen(indexSelect);
     setImagenSeleccionada(props);
     setTipoVista(!tipoVista);
+    //listaImagenesRuta
     //alert("seleccionar imagen");
   }
-  if (!listadoMensajes) {
-    return null;
+  const seleccionarPerfilContacto=()=>{
+    setItemContactoInformacion(true);
+    console.log("contactoSeleccionado.numero",contactoSeleccionado.numero);
   }
-const HeaderComponent=React.memo(()=>{
-  return(      
-  <Header   style={{height:60,backgroundColor:"#fff"}}  >
-  <Left>
-    <TouchableOpacity circle style={{borderRadius:50,marginLeft:0}}    onPress={atras}>
-      <Icon name='arrow-back' style={{color:"#000",marginLeft:0,marginTop:15,top:0,width:60,height:50}}/>
-    </TouchableOpacity>
-  </Left>
-  <Body style={[ {flexDirection: "row",marginLeft:-10}]}>
-  <Text style={styles.headerTitle}>{contactoSeleccionado.nombre}</Text>
-  </Body>
-</Header>);
-});
-
+  const atrasContacto=()=>{
+    setItemContactoInformacion(false);
+  }
   return (
     < >
-   
-      <View style={(tipoVista ? {opacity:1} : {opacity:0}),{height:"100%"} }>
-          <HeaderComponent/>
+      <ItemContactoInformacion atrasContacto={atrasContacto} contactoSeleccionado={contactoSeleccionado} itemContactoInformacion={itemContactoInformacion} />
+      <View style={(tipoVista && !itemContactoInformacion  ? {opacity:1} : {opacity:0}),{height:"100%"} }>
+        
+          <Header   style={{height:60,backgroundColor:"#fff"}}  >
+            <Left style={{width:"5%",marginLeft:-20}}>
+              <TouchableOpacity circle style={{borderRadius:50,marginLeft:0}}    onPress={atras}>
+                <Icon name='arrow-back' style={{color:"#000",marginLeft:0,marginTop:15,top:0,width:60,height:50}}/>
+              </TouchableOpacity>
+              
+            </Left>
+        <TouchableOpacity style={{backgroundColor:"#fff",marginLeft:-5,marginTop:10,width:"90%"}}  onPress={seleccionarPerfilContacto}>
+          <Body style={[ {flexDirection: "row",marginLeft:-155}]}>
+          {
+            contactoSeleccionado.imagenContacto==null ?
+            <Thumbnail style={{width:45,height:45}} circle source={require('../../assets/usuariodefault.jpg' )} circle />
+            :
+          <Thumbnail style={{width:45,height:45}} circle source={{uri: Platform.OS === 'android' ? 'file://' + (directorioPefil+contactoSeleccionado.imagenContacto)  : '' + (directorioPefil+contactoSeleccionado.imagenContacto)}} circle />
+          }
+          <Text style={styles.headerTitle}>{contactoSeleccionado.nombre}</Text>
+          </Body></TouchableOpacity>
+        </Header>
           <SafeAreaView style={{height:"85%"}}>
         
             <FlatList
@@ -275,8 +300,8 @@ const HeaderComponent=React.memo(()=>{
           </TouchableOpacity>
       </View> 
       {
-        !tipoVista ?
-        <ImagenPreviaMensaje contactoSeleccionado={contactoSeleccionado} imagenSeleccionada={imagenSeleccionada} atras={atrasPrevio}  />
+        !tipoVista && !itemContactoInformacion ?
+        <ImagenPreviaMensaje indexImagen={indexImagen} listaImagenes={listaImagenes}  contactoSeleccionado={contactoSeleccionado} imagenSeleccionada={imagenSeleccionada} atras={atrasPrevio}  />
         :
         null
       }
@@ -290,9 +315,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomColor: '#BEBEBE',
     flexDirection:"row",
-    backgroundColor:"red"
+    backgroundColor:"#fff"
   },
-  headerTitle: {fontSize: 20, fontWeight: 'bold'},
+  headerTitle: {fontSize: 20, fontWeight: 'bold',marginTop:10,marginLeft:10},
   safeArea: {
     flex: 1,
   },

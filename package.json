@@ -10,8 +10,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@baronha/react-native-multiple-image-picker": "^0.2.10",
-    "@baronha/react-native-multiple-image-picker": "^0.28.0 ",
+    "@baronha/react-native-multiple-image-picker": "^0.3.2",
     "@react-native-community/cameraroll": "^4.0.4",
     "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/netinfo": "^6.0.0",
@@ -51,6 +50,7 @@
     "react-native-tab-view": "^2.16.0",
     "react-native-vector-icons": "8.1.0",
     "react-native-view-shot": "^3.1.2",
+    "react-native-zoom": "^1.0.1",
     "react-redux": "^7.1.0",
     "redux": "^4.0.1",
     "socket.io-client": "1.7.4",
